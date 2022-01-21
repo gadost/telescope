@@ -1,6 +1,6 @@
 package errors
 
 var (
-	ConfNotFound = "Config file not found"
-	ConfInvalid  = "Invalid config file:"
+    ConfNotFound = "Config file not found"
+    ConfInvalid  = "Invalid config file:"
 )

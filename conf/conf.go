@@ -3,7 +3,6 @@ package conf
 import (
     "log"
     "os"
-    "time"
 
     "github.com/gadost/telescope/errors"
 
@@ -11,12 +10,25 @@ import (
 )
 
 type Config struct {
+    Chains map[string]chain
+}
 
+type chain struct {
+    Name                  string
+    Nodes                 map[string]node
+}
+
+type node struct {
+    Role    string
+    Desc    string
+    Address string
+        NetworkMonitorEnabled bool
+        NetworkMonitorAddress string
 }
 
 var conf Config
 
-func ConfigExist() {
+func ConfExist() {
     f := "~/.telescope/config.toml"
     if _, err := os.Stat(f); err != nil {
         log.Printf(errors.ConfNotFound, err)
@@ -24,7 +36,7 @@ func ConfigExist() {
 
 }
 
-func ConfigValid(data string) {
+func ConfLoad(data string) {
     _, err := toml.Decode(data, &conf)
     if err != nil {
         panic(errors.ConfInvalid)
