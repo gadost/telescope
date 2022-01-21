@@ -1,4 +1,4 @@
-module github.com/gadost/telescope/conf/m
+module github.com/gadost/telescope/conf/v1
 
 go 1.17
 
