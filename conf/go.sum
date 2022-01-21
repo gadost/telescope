@@ -1,4 +1,4 @@
 github.com/BurntSushi/toml v1.0.0 h1:dtDWrepsVPfW9H/4y7dDgFc2MBUSeJhlaDtK13CxFlU=
 github.com/BurntSushi/toml v1.0.0/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
-github.com/gadost/telescope v0.0.0-20220121094258-1e3a0a85c34b h1:O9ycgswZp0xg9Ak5A1sOis6K59GKHH+G9SUHgcnp5bA=
-github.com/gadost/telescope v0.0.0-20220121094258-1e3a0a85c34b/go.mod h1:2A+c1BYqiTTVW+v/om7KhPOIt7m+7tKHfSczh9ywh20=
+github.com/gadost/telescope/errors v0.0.0-20220121103748-bf16892c0575 h1:ld8VDomlJ+8nWXbDV/FUVCqJgrrL1pO5R6X6HCGBPeM=
+github.com/gadost/telescope/errors v0.0.0-20220121103748-bf16892c0575/go.mod h1:IGvWf27o46q82vZ4KwFWfioRs1SQKdm+LRu1zeVkwXU=

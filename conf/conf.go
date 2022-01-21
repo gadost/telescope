@@ -14,16 +14,14 @@ type Config struct {
 }
 
 type chain struct {
-    Name                  string
-    Nodes                 map[string]node
+    Name  string
+    Nodes map[string]node
 }
 
 type node struct {
-    Role    string
-    Desc    string
-    Address string
-        NetworkMonitorEnabled bool
-        NetworkMonitorAddress string
+    Role                  string
+    Address               string
+    NetworkMonitorEnabled bool
 }
 
 var conf Config
