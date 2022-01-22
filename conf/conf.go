@@ -2,7 +2,6 @@ package conf
 
 import (
 	"flag"
-	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"log"
@@ -25,7 +24,7 @@ func init() {
 
 }
 
-//Chain struct for chain.toml configs
+//Chain struct for <chain>.toml configs
 type Config struct {
 	Chain map[string]nodes
 }
@@ -60,9 +59,7 @@ func buildConf(files []fs.FileInfo) {
 		if _, err := toml.DecodeFile(configPath+"/"+f.Name(), &infra); err != nil {
 			log.Fatal(err)
 		}
-		for _, s := range infra.Node {
-			fmt.Printf("%s (%s)\n", s.Address, s.Role)
-		}
+
 		//prevent panic on nil map
 		if cfg.Chain == nil {
 			cfg.Chain = make(map[string]nodes)
