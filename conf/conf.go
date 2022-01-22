@@ -16,7 +16,11 @@ var userHome = os.Getenv("HOME")
 var cfg Config
 var infra nodes
 var chains []string
+var zNodes = &nodes{}
 
+func (n *nodes) Reset() {
+	*n = *zNodes
+}
 func init() {
 
 	flag.StringVar(&configPath, "confd", userHome+"/.telescope/conf.d", "path to configs dir")
@@ -30,13 +34,18 @@ type Config struct {
 }
 
 type nodes struct {
+	Info info
 	Node []node
+}
+type info struct {
+	Mainnet  bool
+	Telegram bool
 }
 
 type node struct {
-	Role                  string
-	Address               string
-	NetworkMonitorEnabled bool
+	Role                     string
+	Address                  string
+	NetworkMonitoringEnabled bool `toml:"network_monitoring_enabled"`
 }
 
 //Check existence of confd folder
@@ -59,13 +68,15 @@ func buildConf(files []fs.FileInfo) {
 		if _, err := toml.DecodeFile(configPath+"/"+f.Name(), &infra); err != nil {
 			log.Fatal(err)
 		}
-
+		log.Println(infra)
 		//prevent panic on nil map
 		if cfg.Chain == nil {
 			cfg.Chain = make(map[string]nodes)
 		}
 		cfg.Chain[fileNameWithoutExtSliceNotation(f.Name())] = infra
 		chains = append(chains, fileNameWithoutExtSliceNotation(f.Name()))
+		// Should be reseted, because using one univerasl struct
+		infra.Reset()
 	}
 }
 
