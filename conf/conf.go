@@ -7,80 +7,124 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/libs/bytes"
 )
 
-var configPath string
-var userHome = os.Getenv("HOME")
-var cfg Config
-var infra nodes
-var chains []string
-var zNodes = &nodes{}
-
-func (n *nodes) Reset() {
-	*n = *zNodes
-}
-func init() {
-
-	flag.StringVar(&configPath, "confd", userHome+"/.telescope/conf.d", "path to configs dir")
-	flag.Parse()
-
-}
+var (
+	chains         []string
+	config         Config
+	chainsConfig   ChainsConfig
+	confdPath      string
+	infra          Nodes
+	mainConfigName = "telescope.toml"
+	userHome       = os.Getenv("HOME")
+	zNodes         = &Nodes{}
+)
 
 //Chain struct for <chain>.toml configs
-type Config struct {
-	Chain map[string]nodes
+type ChainsConfig struct {
+	Chain map[string]Nodes
 }
 
-type nodes struct {
-	Info info
-	Node []node
+type Nodes struct {
+	Info struct {
+		Github             string
+		Mainnet            bool
+		Telegram           bool
+		VotingPowerChanges int64 `toml:"voting_power_changes"`
+		BlocksMissedInARow int64 `toml:"blocks_missed_in_a_row"`
+		PeersCount         int64 `toml:"peers_count"`
+	}
+	Node []Node
 }
-type info struct {
-	Mainnet  bool
-	Telegram bool
-}
-
-type node struct {
+type Node struct {
 	Role                     string
-	Address                  string
-	NetworkMonitoringEnabled bool `toml:"network_monitoring_enabled"`
+	RPC                      string `toml:"rpc"`
+	NetworkMonitoringEnabled bool   `toml:"network_monitoring_enabled"`
+	Status                   struct {
+		NodeInfo struct {
+			NodeID  string
+			Network string
+			Moniker string
+		}
+
+		SyncInfo struct {
+			LatestBlockHash   bytes.HexBytes
+			LatestBlockHeight int64
+			CatchingUp        bool
+			LatestBlockTime   time.Time
+		}
+
+		ValidatorInfo struct {
+			PubKey      crypto.PubKey
+			VotingPower int64
+		}
+
+		BlockMissedTracker uint64
+		PeersCount         int
+
+		LastSeenProblemsAt time.Time
+		LastSeenAt         time.Time
+	}
+}
+
+// telescope.toml
+type Config struct {
+}
+
+func (n *Nodes) Reset() {
+	*n = *zNodes
+}
+
+func init() {
+	flag.StringVar(&confdPath, "confd", userHome+"/.telescope/conf.d", "path to configs dir")
+	flag.Parse()
 }
 
 //Check existence of confd folder
-func ConfLoad() (Config, []string) {
-	if _, err := os.Stat(configPath); !os.IsNotExist(err) {
-		files, err := ioutil.ReadDir(configPath)
+func ConfLoad() (ChainsConfig, []string) {
+	if _, err := os.Stat(confdPath); !os.IsNotExist(err) {
+		files, err := ioutil.ReadDir(confdPath)
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)
 		}
 		buildConf(files)
 	}
-	return cfg, chains
+	return chainsConfig, chains
 }
 
 // buildConf load parsed config to struct
 func buildConf(files []fs.FileInfo) {
 
 	for _, f := range files {
-		if _, err := toml.DecodeFile(configPath+"/"+f.Name(), &infra); err != nil {
-			log.Fatal(err)
+		switch f.Name() {
+		case mainConfigName:
+			if _, err := toml.DecodeFile(confdPath+"/"+f.Name(), &config); err != nil {
+				log.Fatal(err)
+			}
+		default:
+
+			if _, err := toml.DecodeFile(confdPath+"/"+f.Name(), &infra); err != nil {
+				log.Fatal(err)
+			}
+			//prevent panic on nil map
+			if chainsConfig.Chain == nil {
+				chainsConfig.Chain = make(map[string]Nodes)
+			}
+			chainsConfig.Chain[fileNameWithoutExt(f.Name())] = infra
+			chains = append(chains, fileNameWithoutExt(f.Name()))
+			// Should be reseted, because using one univerasl struct
+			infra.Reset()
 		}
-		log.Println(infra)
-		//prevent panic on nil map
-		if cfg.Chain == nil {
-			cfg.Chain = make(map[string]nodes)
-		}
-		cfg.Chain[fileNameWithoutExtSliceNotation(f.Name())] = infra
-		chains = append(chains, fileNameWithoutExtSliceNotation(f.Name()))
-		// Should be reseted, because using one univerasl struct
-		infra.Reset()
 	}
 }
 
 // Remove extesion  for add to chains slice
-func fileNameWithoutExtSliceNotation(fileName string) string {
+func fileNameWithoutExt(fileName string) string {
 	return fileName[:len(fileName)-len(filepath.Ext(fileName))]
 }

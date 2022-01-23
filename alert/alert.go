@@ -1,0 +1,5 @@
+package alert
+
+func NewAlert() {
+
+}
