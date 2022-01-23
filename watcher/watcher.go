@@ -124,5 +124,4 @@ func ParseNetInfo(ni *coretypes.ResultNetInfo, c string, r string) {
 			Chains.Chain[c].Node[i].Status.PeersCount = ni.NPeers
 		}
 	}
-
 }

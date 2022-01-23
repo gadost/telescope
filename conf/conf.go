@@ -16,9 +16,9 @@ import (
 
 var (
 	chains         []string
-	config         Config
+	MainConfig     Config
 	chainsConfig   ChainsConfig
-	confdPath      string
+	ConfdPath      string
 	infra          Nodes
 	mainConfigName = "telescope.toml"
 	userHome       = os.Getenv("HOME")
@@ -74,6 +74,21 @@ type Node struct {
 
 // telescope.toml
 type Config struct {
+	Settings struct {
+		DowntimeInterval int `toml:"downtime_interval"`
+	} `toml:"settings"`
+	Telegram struct {
+		Enabled bool   `toml:"enabled"`
+		Token   string `toml:"token"`
+	} `toml:"telegram"`
+	Discord struct {
+	} `toml:"discord"`
+	Twilio struct {
+	} `toml:"twilio"`
+	Mail struct {
+	} `toml:"mail"`
+	Sms struct {
+	} `toml:"sms"`
 }
 
 func (n *Nodes) Reset() {
@@ -81,14 +96,14 @@ func (n *Nodes) Reset() {
 }
 
 func init() {
-	flag.StringVar(&confdPath, "confd", userHome+"/.telescope/conf.d", "path to configs dir")
+	flag.StringVar(&ConfdPath, "confd", userHome+"/.telescope/conf.d", "path to configs dir")
 	flag.Parse()
 }
 
 //Check existence of confd folder
 func ConfLoad() (ChainsConfig, []string) {
-	if _, err := os.Stat(confdPath); !os.IsNotExist(err) {
-		files, err := ioutil.ReadDir(confdPath)
+	if _, err := os.Stat(ConfdPath); !os.IsNotExist(err) {
+		files, err := ioutil.ReadDir(ConfdPath)
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)
@@ -104,12 +119,12 @@ func buildConf(files []fs.FileInfo) {
 	for _, f := range files {
 		switch f.Name() {
 		case mainConfigName:
-			if _, err := toml.DecodeFile(confdPath+"/"+f.Name(), &config); err != nil {
+			if _, err := toml.DecodeFile(ConfdPath+"/"+f.Name(), &MainConfig); err != nil {
 				log.Fatal(err)
 			}
 		default:
 
-			if _, err := toml.DecodeFile(confdPath+"/"+f.Name(), &infra); err != nil {
+			if _, err := toml.DecodeFile(ConfdPath+"/"+f.Name(), &infra); err != nil {
 				log.Fatal(err)
 			}
 			//prevent panic on nil map
