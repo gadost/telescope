@@ -80,14 +80,19 @@ type Config struct {
 	Telegram struct {
 		Enabled bool   `toml:"enabled"`
 		Token   string `toml:"token"`
+		ChatID  string `toml:"chat_id"`
 	} `toml:"telegram"`
 	Discord struct {
+		Enabled bool `toml:"enabled"`
 	} `toml:"discord"`
 	Twilio struct {
+		Enabled bool `toml:"enabled"`
 	} `toml:"twilio"`
 	Mail struct {
+		Enabled bool `toml:"enabled"`
 	} `toml:"mail"`
 	Sms struct {
+		Enabled bool `toml:"enabled"`
 	} `toml:"sms"`
 }
 

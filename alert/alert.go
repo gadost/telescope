@@ -1,19 +1,43 @@
 package alert
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/gadost/telescope/conf"
+)
 
 var wg sync.WaitGroup
+var alertSystems = &conf.MainConfig
+var Importance = importance{}
 
-func New() {
+type importance struct {
+	Urgent  string "URGENT"
+	Warning string "Warning"
+	Info    string "Info"
+	OK      string "OK"
+}
+
+func New(i string, m string) {
 	wg.Add(1)
-	go Alert()
+	go Alert(i, m)
 }
 
-func Alert() {
+func Alert(i string, m string) {
 	defer wg.Done()
-	Send()
-}
+	if alertSystems.Telegram.Enabled {
+		TelegramSend(i, m)
+	}
+	/**	if alertSystems.Discord.Enabled {
 
-func Send() {
+		}
+		if alertSystems.Mail.Enabled {
 
+		}
+		if alertSystems.Sms.Enabled {
+
+		}
+		if alertSystems.Twilio.Enabled {
+
+		}
+	**/
 }

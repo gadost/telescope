@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"sync"
 	"time"
 
+	"github.com/gadost/telescope/alert"
 	"github.com/gadost/telescope/conf"
 	tmint "github.com/tendermint/tendermint/rpc/client/http"
 	"github.com/tendermint/tendermint/rpc/coretypes"
+	tele "gopkg.in/telebot.v3"
 )
 
 var ctx = context.TODO()
@@ -73,11 +76,17 @@ func ParseStatus(s *coretypes.ResultStatus, c string, r string) {
 			//VALIDATOR POWER CHANGES
 			if Chains.Chain[c].Node[i].Status.ValidatorInfo.VotingPower != s.ValidatorInfo.VotingPower {
 				if Chains.Chain[c].Node[i].Status.ValidatorInfo.VotingPower-s.ValidatorInfo.VotingPower >= Chains.Chain[c].Info.VotingPowerChanges {
-					// ALERT HERE
-					fmt.Println(s.ValidatorInfo.VotingPower)
+					alert.New(alert.Importance.Info, fmt.Sprintf("Voting Power of '%s' , Network: %s DECREASED by %v to %v",
+						Chains.Chain[c].Node[i].Status.NodeInfo.Moniker,
+						Chains.Chain[c].Node[i].Status.NodeInfo.Network,
+						Chains.Chain[c].Node[i].Status.ValidatorInfo.VotingPower-s.ValidatorInfo.VotingPower,
+						s.ValidatorInfo.VotingPower))
 				} else if s.ValidatorInfo.VotingPower-Chains.Chain[c].Node[i].Status.ValidatorInfo.VotingPower >= Chains.Chain[c].Info.VotingPowerChanges {
-					// ALERT HERE
-					fmt.Println(s.ValidatorInfo.VotingPower)
+					alert.New(alert.Importance.Info, fmt.Sprintf("Voting Power of '%s' , Network: %s INCREASED by %v to %v",
+						Chains.Chain[c].Node[i].Status.NodeInfo.Moniker,
+						Chains.Chain[c].Node[i].Status.NodeInfo.Network,
+						s.ValidatorInfo.VotingPower-Chains.Chain[c].Node[i].Status.ValidatorInfo.VotingPower,
+						s.ValidatorInfo.VotingPower))
 				}
 			}
 			Chains.Chain[c].Node[i].Status.ValidatorInfo.VotingPower = s.ValidatorInfo.VotingPower
@@ -88,17 +97,18 @@ func ParseStatus(s *coretypes.ResultStatus, c string, r string) {
 				switch s.SyncInfo.CatchingUp {
 				case true:
 					Chains.Chain[c].Node[i].Status.SyncInfo.CatchingUp = s.SyncInfo.CatchingUp
-					//ALERT HERE CATCHING
+					alert.New(alert.Importance.Urgent, fmt.Sprintf("Node '%s' CatchingUp", Chains.Chain[c].Node[i].Status.NodeInfo.Moniker))
 					if Chains.Chain[c].Node[i].Status.SyncInfo.LatestBlockHeight-s.SyncInfo.LatestBlockHeight > Chains.Chain[c].Info.BlocksMissedInARow {
-						// ALERT BLOCKS TO GO
-						fmt.Println(Chains.Chain[c].Node[i].Status.SyncInfo.LatestBlockHeight - s.SyncInfo.LatestBlockHeight)
+						alert.New(alert.Importance.Urgent, fmt.Sprintf("Node '%s' %v blocks behind",
+							Chains.Chain[c].Node[i].Status.NodeInfo.Moniker,
+							Chains.Chain[c].Node[i].Status.SyncInfo.LatestBlockHeight-s.SyncInfo.LatestBlockHeight))
 					}
 				}
 			case true:
 				switch s.SyncInfo.CatchingUp {
 				case false:
 					Chains.Chain[c].Node[i].Status.SyncInfo.CatchingUp = s.SyncInfo.CatchingUp
-					// ALERT HERE DONE
+					alert.New(alert.Importance.OK, fmt.Sprintf("Node '%s' Synced", Chains.Chain[c].Node[i].Status.NodeInfo.Moniker))
 				}
 			}
 
@@ -114,14 +124,51 @@ func ParseNetInfo(ni *coretypes.ResultNetInfo, c string, r string) {
 		if n.RPC == r {
 			if ni.NPeers <= 10 {
 				if Chains.Chain[c].Node[i].Status.PeersCount-ni.NPeers > 0 {
-					//ALERT HERE DECREASED
-					fmt.Println(ni.NPeers)
+					alert.New(alert.Importance.Urgent, fmt.Sprintf("Peers count DECREASED by %v to %v", Chains.Chain[c].Node[i].Status.PeersCount-ni.NPeers, ni.NPeers))
 				} else if Chains.Chain[c].Node[i].Status.PeersCount-ni.NPeers < 0 {
-					//ALERT HERE INCREASED
-					fmt.Println(ni.NPeers)
+					alert.New(alert.Importance.OK, fmt.Sprintf("Peers count INCREASED by %v to %v", ni.NPeers-Chains.Chain[c].Node[i].Status.PeersCount, ni.NPeers))
 				}
 			}
 			Chains.Chain[c].Node[i].Status.PeersCount = ni.NPeers
 		}
 	}
+}
+
+func StatusCollection() string {
+	var collection string
+	var cu string
+	collection = collection + "<b>Status:</b>\n\n"
+	for i := range Chains.Chain {
+		for _, k := range Chains.Chain[i].Node {
+			collection += "<b>Net:</b> " + k.Status.NodeInfo.Network + "\n<b>Moniker:</b> " + k.Status.NodeInfo.Moniker + "\n"
+			if k.Status.SyncInfo.CatchingUp {
+				cu = "Yes"
+			} else {
+				cu = "No"
+			}
+
+			collection += "<b>CatchingUp:</b> " + cu + "\n"
+			collection += "<b>Last known height:</b> " + strconv.Itoa(int(k.Status.SyncInfo.LatestBlockHeight)) + "\n"
+			collection += "<b>Last seen at:</b> " + k.Status.SyncInfo.LatestBlockTime.Format("2006-01-02 15:04:05") + "\n"
+			collection += "_________________________\n"
+		}
+	}
+	return collection
+}
+
+func TelegramHandler() {
+	var pref = tele.Settings{
+		Token:  conf.MainConfig.Telegram.Token,
+		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
+	}
+	b, err := tele.NewBot(pref)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	b.Handle("/status", func(c tele.Context) error {
+		return c.Send(StatusCollection(), "HTML")
+	})
+
+	b.Start()
 }
