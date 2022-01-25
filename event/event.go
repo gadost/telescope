@@ -2,7 +2,6 @@ package event
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gadost/telescope/alert"
@@ -99,10 +98,8 @@ func HealthCheck(moniker, network, rpc string, counter int, timeDelta time.Durat
 				rpc,
 			),
 		)
-		log.Println(moniker, counter, "q")
 		return true, resolved
 	} else if counter > 5 {
-		log.Println(moniker, counter, "qw")
 		return true, resolved
 	} else if counter == 0 && lastStatus {
 		alert.New(
@@ -116,13 +113,10 @@ func HealthCheck(moniker, network, rpc string, counter int, timeDelta time.Durat
 			),
 		)
 		resolved = true
-		log.Println(moniker, counter, "qwe")
 		return false, resolved
 	} else if counter == 0 && !lastStatus {
-		log.Println(moniker, counter, "qwer")
 		return false, resolved
 	} else {
-		log.Println(moniker, counter, "qwert")
 		return true, resolved
 	}
 }
