@@ -1,6 +1,7 @@
 package alert
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -24,6 +25,9 @@ func TelegramSend(s string, m string) {
 	}
 	var chatID, _ = strconv.ParseInt(conf.MainConfig.Telegram.ChatID, 10, 64)
 	var to = &tele.Chat{ID: chatID}
-	b.Send(to, s+": "+m)
+	_, err = b.Send(to, "* "+s+"*: \n`"+m+"`", "MarkdownV2")
+	if err != nil {
+		fmt.Println(err)
+	}
 
 }

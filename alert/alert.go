@@ -8,13 +8,19 @@ import (
 
 var wg sync.WaitGroup
 var alertSystems = &conf.MainConfig
-var Importance = importance{}
+var at = "🔭 Telescope \\| "
+var Importance = importance{
+	Urgent:  at + "Urgent🔴",
+	Warning: at + "Warning ⚠️",
+	Info:    at + "Info ℹ️",
+	OK:      at + "OK ✅",
+}
 
 type importance struct {
-	Urgent  string "URGENT"
-	Warning string "Warning"
-	Info    string "Info"
-	OK      string "OK"
+	Urgent  string
+	Warning string
+	Info    string
+	OK      string
 }
 
 func New(i string, m string) {

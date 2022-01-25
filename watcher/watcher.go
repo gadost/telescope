@@ -2,14 +2,13 @@ package watcher
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/gadost/telescope/alert"
 	"github.com/gadost/telescope/conf"
+	"github.com/gadost/telescope/event"
 	tmint "github.com/tendermint/tendermint/rpc/client/http"
 	"github.com/tendermint/tendermint/rpc/coretypes"
 	tele "gopkg.in/telebot.v3"
@@ -19,117 +18,126 @@ var ctx = context.TODO()
 var node = &conf.Nodes{}
 var wg sync.WaitGroup
 var Node conf.Node
-
-//var Chains = &conf.ChainsConfig{}
 var Chains = &conf.ChainsConfig{}
 
+// Split nodes and run gorutine per node
 func ThreadsSplitter(cfg conf.ChainsConfig, chains []string) {
 	Chains = &cfg
-	for _, c := range chains {
-		*node = cfg.Chain[c]
-		for _, n := range node.Node {
-			if n.NetworkMonitoringEnabled {
+	for _, chainName := range chains {
+		*node = cfg.Chain[chainName]
+		for _, nodeConf := range node.Node {
+			if nodeConf.NetworkMonitoringEnabled {
 				wg.Add(1)
-				go Thread(n.RPC, c)
+				go Thread(nodeConf.RPC, chainName)
 			}
 		}
 	}
 	wg.Wait()
 }
 
-func Thread(r string, c string) {
+func Thread(rpc string, chainName string) {
 	defer wg.Done()
-	t, err := tmint.New(r)
-
+	client, err := tmint.New(rpc)
 	if err != nil {
 		log.Println(err)
 	} else {
-		err = t.Start(ctx)
+		err = client.Start(ctx)
 		if err != nil {
-			log.Println("Will trying reconnect later", err)
+			log.Println(err)
 		}
+		var counter int
 		for {
-			s, _ := t.Status(ctx)
-			if s != nil {
-				ParseStatus(s, c, r)
+			health, _ := client.Health(ctx)
+			if health == nil {
+				log.Printf("Health: %s : %v+", rpc, health)
+				counter += 1
+			} else {
+				counter = 0
+				status, _ := client.Status(ctx)
+				if status != nil {
+					CheckStatus(status, chainName, rpc)
+					//counter = 0
+				}
+				netInfo, _ := client.NetInfo(ctx)
+				if netInfo != nil {
+					CheckPeers(netInfo, chainName, rpc)
+				}
+
 			}
-			ni, _ := t.NetInfo(ctx)
-			if ni != nil {
-				ParseNetInfo(ni, c, r)
-			}
+			counter = CheckHealth(chainName, rpc, counter)
+
 			time.Sleep(10 * time.Second)
 		}
 	}
+
 }
 
-func ParseStatus(s *coretypes.ResultStatus, c string, r string) {
-	for i, n := range Chains.Chain[c].Node {
-		if n.RPC == r {
-			log.Printf("%+v", Chains.Chain[c].Node[i].Status)
-			log.Println(s.NodeInfo.Moniker)
-
-			//Probably change to struct load ( just now mismatch types)
-			Chains.Chain[c].Node[i].Status.NodeInfo.Moniker = s.NodeInfo.Moniker
-			Chains.Chain[c].Node[i].Status.NodeInfo.Network = s.NodeInfo.Network
-			Chains.Chain[c].Node[i].Status.NodeInfo.NodeID = string(s.NodeInfo.NodeID)
-			Chains.Chain[c].Node[i].Status.ValidatorInfo.PubKey = s.ValidatorInfo.PubKey
-			//VALIDATOR POWER CHANGES
-			if Chains.Chain[c].Node[i].Status.ValidatorInfo.VotingPower != s.ValidatorInfo.VotingPower {
-				if Chains.Chain[c].Node[i].Status.ValidatorInfo.VotingPower-s.ValidatorInfo.VotingPower >= Chains.Chain[c].Info.VotingPowerChanges {
-					alert.New(alert.Importance.Info, fmt.Sprintf("Voting Power of '%s' , Network: %s DECREASED by %v to %v",
-						Chains.Chain[c].Node[i].Status.NodeInfo.Moniker,
-						Chains.Chain[c].Node[i].Status.NodeInfo.Network,
-						Chains.Chain[c].Node[i].Status.ValidatorInfo.VotingPower-s.ValidatorInfo.VotingPower,
-						s.ValidatorInfo.VotingPower))
-				} else if s.ValidatorInfo.VotingPower-Chains.Chain[c].Node[i].Status.ValidatorInfo.VotingPower >= Chains.Chain[c].Info.VotingPowerChanges {
-					alert.New(alert.Importance.Info, fmt.Sprintf("Voting Power of '%s' , Network: %s INCREASED by %v to %v",
-						Chains.Chain[c].Node[i].Status.NodeInfo.Moniker,
-						Chains.Chain[c].Node[i].Status.NodeInfo.Network,
-						s.ValidatorInfo.VotingPower-Chains.Chain[c].Node[i].Status.ValidatorInfo.VotingPower,
-						s.ValidatorInfo.VotingPower))
-				}
-			}
-			Chains.Chain[c].Node[i].Status.ValidatorInfo.VotingPower = s.ValidatorInfo.VotingPower
-
-			// CATCHINGUP STATE
-			switch Chains.Chain[c].Node[i].Status.SyncInfo.CatchingUp {
-			case false:
-				switch s.SyncInfo.CatchingUp {
-				case true:
-					Chains.Chain[c].Node[i].Status.SyncInfo.CatchingUp = s.SyncInfo.CatchingUp
-					alert.New(alert.Importance.Urgent, fmt.Sprintf("Node '%s' CatchingUp", Chains.Chain[c].Node[i].Status.NodeInfo.Moniker))
-					if Chains.Chain[c].Node[i].Status.SyncInfo.LatestBlockHeight-s.SyncInfo.LatestBlockHeight > Chains.Chain[c].Info.BlocksMissedInARow {
-						alert.New(alert.Importance.Urgent, fmt.Sprintf("Node '%s' %v blocks behind",
-							Chains.Chain[c].Node[i].Status.NodeInfo.Moniker,
-							Chains.Chain[c].Node[i].Status.SyncInfo.LatestBlockHeight-s.SyncInfo.LatestBlockHeight))
-					}
-				}
-			case true:
-				switch s.SyncInfo.CatchingUp {
-				case false:
-					Chains.Chain[c].Node[i].Status.SyncInfo.CatchingUp = s.SyncInfo.CatchingUp
-					alert.New(alert.Importance.OK, fmt.Sprintf("Node '%s' Synced", Chains.Chain[c].Node[i].Status.NodeInfo.Moniker))
-				}
-			}
-
-			Chains.Chain[c].Node[i].Status.SyncInfo.LatestBlockHash = s.SyncInfo.LatestBlockHash
-			Chains.Chain[c].Node[i].Status.SyncInfo.LatestBlockHeight = s.SyncInfo.LatestBlockHeight
-			Chains.Chain[c].Node[i].Status.SyncInfo.LatestBlockTime = s.SyncInfo.LatestBlockTime
+func CheckPeers(res *coretypes.ResultNetInfo, chainName string, rpc string) {
+	for i, n := range Chains.Chain[chainName].Node {
+		if n.RPC == rpc {
+			status := Chains.Chain[chainName].Node[i].Status
+			event.PeersCount(
+				status.PeersCount,
+				res.NPeers,
+				status.NodeInfo.Moniker,
+				status.NodeInfo.Network,
+			)
+			Chains.Chain[chainName].Node[i].Status.PeersCount = res.NPeers
 		}
 	}
 }
 
-func ParseNetInfo(ni *coretypes.ResultNetInfo, c string, r string) {
-	for i, n := range Chains.Chain[c].Node {
-		if n.RPC == r {
-			if ni.NPeers <= 10 {
-				if Chains.Chain[c].Node[i].Status.PeersCount-ni.NPeers > 0 {
-					alert.New(alert.Importance.Urgent, fmt.Sprintf("Peers count DECREASED by %v to %v", Chains.Chain[c].Node[i].Status.PeersCount-ni.NPeers, ni.NPeers))
-				} else if Chains.Chain[c].Node[i].Status.PeersCount-ni.NPeers < 0 {
-					alert.New(alert.Importance.OK, fmt.Sprintf("Peers count INCREASED by %v to %v", ni.NPeers-Chains.Chain[c].Node[i].Status.PeersCount, ni.NPeers))
-				}
+func CheckHealth(chainName string, rpc string, counter int) int {
+	for i, n := range Chains.Chain[chainName].Node {
+		if n.RPC == rpc {
+			status := Chains.Chain[chainName].Node[i].Status
+			if counter == 5 {
+				Chains.Chain[chainName].Node[i].Status.HealthStateBad = true
 			}
-			Chains.Chain[c].Node[i].Status.PeersCount = ni.NPeers
+			_, resolved := event.HealthCheck(
+				status.NodeInfo.Moniker,
+				status.NodeInfo.Network,
+				rpc,
+				counter,
+				status.SyncInfo.LatestBlockTime.Sub(status.LastSeenAt),
+				status.LastSeenAt,
+				status.HealthStateBad,
+			)
+			if Chains.Chain[chainName].Node[i].Status.HealthStateBad {
+				Chains.Chain[chainName].Node[i].Status.LastSeenAt = Chains.Chain[chainName].Node[i].Status.SyncInfo.LatestBlockTime
+			}
+			if resolved {
+				Chains.Chain[chainName].Node[i].Status.HealthStateBad = false
+			}
+		}
+	}
+	return counter
+}
+
+//ENDHERE
+func CheckStatus(res *coretypes.ResultStatus, chainName string, rpc string) {
+	for i, n := range Chains.Chain[chainName].Node {
+		if n.RPC == rpc {
+			state := Chains.Chain[chainName].Node[i].Status
+			state.NodeInfo = res.NodeInfo
+			event.VotingPower(
+				state.ValidatorInfo.VotingPower,
+				res.ValidatorInfo.VotingPower,
+				Chains.Chain[chainName].Info.VotingPowerChanges,
+				state.NodeInfo.Moniker,
+				state.NodeInfo.Network,
+			)
+			event.CatchingUpState(
+				Chains.Chain[chainName].Node[i].Status.SyncInfo.CatchingUp,
+				res.SyncInfo.CatchingUp,
+				state.NodeInfo.Moniker,
+				state.NodeInfo.Network,
+				res.SyncInfo.LatestBlockHeight-Chains.Chain[chainName].Node[i].Status.SyncInfo.LatestBlockHeight,
+				Chains.Chain[chainName].Info.BlocksMissedInARow,
+			)
+			Chains.Chain[chainName].Node[i].Status.NodeInfo = res.NodeInfo
+			Chains.Chain[chainName].Node[i].Status.SyncInfo = res.SyncInfo
+			Chains.Chain[chainName].Node[i].Status.ValidatorInfo = res.ValidatorInfo
 		}
 	}
 }

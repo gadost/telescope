@@ -10,8 +10,9 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/bytes"
+	"github.com/tendermint/tendermint/rpc/coretypes"
+	"github.com/tendermint/tendermint/types"
 )
 
 var (
@@ -45,31 +46,28 @@ type Node struct {
 	Role                     string
 	RPC                      string `toml:"rpc"`
 	NetworkMonitoringEnabled bool   `toml:"network_monitoring_enabled"`
-	Status                   struct {
-		NodeInfo struct {
-			NodeID  string
-			Network string
-			Moniker string
-		}
+	Status                   NodeStatus
+}
 
-		SyncInfo struct {
-			LatestBlockHash   bytes.HexBytes
-			LatestBlockHeight int64
-			CatchingUp        bool
-			LatestBlockTime   time.Time
-		}
+type NodeStatus struct {
+	NodeInfo       types.NodeInfo
+	SyncInfo       coretypes.SyncInfo
+	HealthStateBad bool
 
-		ValidatorInfo struct {
-			PubKey      crypto.PubKey
-			VotingPower int64
-		}
+	ValidatorInfo coretypes.ValidatorInfo
 
-		BlockMissedTracker uint64
-		PeersCount         int
+	BlockMissedTracker uint64
+	PeersCount         int
 
-		LastSeenProblemsAt time.Time
-		LastSeenAt         time.Time
-	}
+	LastSeenProblemsAt time.Time
+	LastSeenAt         time.Time
+}
+
+type NodeSyncInfo struct {
+	LatestBlockHash   bytes.HexBytes
+	LatestBlockHeight int64
+	CatchingUp        bool
+	LatestBlockTime   time.Time
 }
 
 // telescope.toml
