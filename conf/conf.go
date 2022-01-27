@@ -33,7 +33,7 @@ type ChainsConfig struct {
 
 type Nodes struct {
 	Info struct {
-		Github             string
+		Github             string `toml:"github"`
 		Mainnet            bool
 		Telegram           bool
 		VotingPowerChanges int64 `toml:"voting_power_changes"`
@@ -73,7 +73,8 @@ type NodeSyncInfo struct {
 // telescope.toml
 type Config struct {
 	Settings struct {
-		DowntimeInterval int `toml:"downtime_interval"`
+		DowntimeInterval     int  `toml:"downtime_interval"`
+		GithubReleaseMonitor bool `toml:"github_release_monitor"`
 	} `toml:"settings"`
 	Telegram struct {
 		Enabled bool   `toml:"enabled"`

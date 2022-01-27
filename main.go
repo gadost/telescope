@@ -15,6 +15,10 @@ func main() {
 		wg.Add(1)
 		go watcher.TelegramHandler()
 	}
+	if conf.MainConfig.Settings.GithubReleaseMonitor {
+		wg.Add(1)
+		go watcher.CheckNewRealeases()
+	}
 	watcher.ThreadsSplitter(cfg, chains)
 
 }

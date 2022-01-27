@@ -2,8 +2,10 @@ package watcher
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -56,7 +58,6 @@ func Thread(rpc string, chainName string) {
 				status, _ := client.Status(ctx)
 				if status != nil {
 					CheckStatus(status, chainName, rpc)
-					//counter = 0
 				}
 				netInfo, _ := client.NetInfo(ctx)
 				if netInfo != nil {
@@ -114,7 +115,6 @@ func CheckHealth(chainName string, rpc string, counter int) int {
 	return counter
 }
 
-//ENDHERE
 func CheckStatus(res *coretypes.ResultStatus, chainName string, rpc string) {
 	for i, n := range Chains.Chain[chainName].Node {
 		if n.RPC == rpc {
@@ -145,22 +145,31 @@ func CheckStatus(res *coretypes.ResultStatus, chainName string, rpc string) {
 func StatusCollection() string {
 	var collection string
 	var cu string
-	collection = collection + "<b>Status:</b>\n\n"
+	var badRPC []string
+	collection = collection + "*Status:*\n\n"
 	for i := range Chains.Chain {
 		for _, k := range Chains.Chain[i].Node {
-			collection += "<b>Net:</b> " + k.Status.NodeInfo.Network + "\n<b>Moniker:</b> " + k.Status.NodeInfo.Moniker + "\n"
-			if k.Status.SyncInfo.CatchingUp {
-				cu = "Yes"
-			} else {
-				cu = "No"
-			}
+			if k.Status.SyncInfo.LatestBlockHeight > 0 {
+				collection += "*Net:* `" + k.Status.NodeInfo.Network + "`\n*Moniker:* `" + k.Status.NodeInfo.Moniker + "`\n"
+				if k.Status.SyncInfo.CatchingUp {
+					cu = "Yes"
+				} else {
+					cu = "No"
+				}
 
-			collection += "<b>CatchingUp:</b> " + cu + "\n"
-			collection += "<b>Last known height:</b> " + strconv.Itoa(int(k.Status.SyncInfo.LatestBlockHeight)) + "\n"
-			collection += "<b>Last seen at:</b> " + k.Status.SyncInfo.LatestBlockTime.Format("2006-01-02 15:04:05") + "\n"
-			collection += "_________________________\n"
+				collection += "*CatchingUp:* `" + cu + "`\n"
+				collection += "*Last known height:* `" + strconv.Itoa(int(k.Status.SyncInfo.LatestBlockHeight)) + "`\n"
+				collection += "*Last seen at:* `" + k.Status.SyncInfo.LatestBlockTime.Format("2006-01-02 15:04:05") + "`\n"
+				collection += "`_________________________`\n"
+			} else {
+				badRPC = append(badRPC, k.RPC)
+			}
 		}
 	}
+	if len(badRPC) > 0 {
+		collection += "*🔴Unreachable RPCs:*\n`" + strings.Join(badRPC, "\n") + "`"
+	}
+	fmt.Println(collection)
 	return collection
 }
 
@@ -175,7 +184,7 @@ func TelegramHandler() {
 		return
 	}
 	b.Handle("/status", func(c tele.Context) error {
-		return c.Send(StatusCollection(), "HTML")
+		return c.Send(StatusCollection(), "MarkdownV2")
 	})
 
 	b.Start()

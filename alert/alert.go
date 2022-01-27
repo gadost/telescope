@@ -14,6 +14,7 @@ var Importance = importance{
 	Warning: at + "Warning ⚠️",
 	Info:    at + "Info ℹ️",
 	OK:      at + "OK ✅",
+	GH:      at + "Repo Monitor 🔎",
 }
 
 type importance struct {
@@ -21,6 +22,7 @@ type importance struct {
 	Warning string
 	Info    string
 	OK      string
+	GH      string
 }
 
 func New(i string, m string) {
