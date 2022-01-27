@@ -46,13 +46,16 @@ type Node struct {
 	Role                     string
 	RPC                      string `toml:"rpc"`
 	NetworkMonitoringEnabled bool   `toml:"network_monitoring_enabled"`
+	MonitoringEnabled        bool   `toml:"monitoring_enabled"`
 	Status                   NodeStatus
 }
 
 type NodeStatus struct {
-	NodeInfo       types.NodeInfo
-	SyncInfo       coretypes.SyncInfo
-	HealthStateBad bool
+	NodeInfo            types.NodeInfo
+	SyncInfo            coretypes.SyncInfo
+	HealthStateBad      bool
+	BootstrappedStatus  bool
+	BootstrappedNetInfo bool
 
 	ValidatorInfo coretypes.ValidatorInfo
 

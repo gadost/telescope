@@ -144,10 +144,14 @@ func Monitor(ri repoInfo, target *latestReleaseResponse) {
 			ri.latestReleaseTag = target.TagName
 		case target.TagName:
 		default:
-			alert.New(alert.Importance.GH, fmt.Sprintf("Release %s of %s has just been released.\nRelease desc: %s", target.TagName, ri.RepoName, target.Body))
+			releaseDesc := ""
+			if target.Body != "" {
+				releaseDesc = fmt.Sprintf("Release desc: %s", target.Body)
+			}
+			alert.New(alert.Importance.GH, fmt.Sprintf("Release %s of %s has just been released.\n%s", target.TagName, ri.RepoName, releaseDesc))
 			ri.latestReleaseTag = target.TagName
 		}
-
-		time.Sleep(10 * time.Second)
+		// Rate limit 60 per hour , we will do only 12 requests per hour
+		time.Sleep(300 * time.Second)
 	}
 }
