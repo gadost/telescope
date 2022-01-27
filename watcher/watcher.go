@@ -45,12 +45,12 @@ func Thread(rpc string, chainName string, n int) {
 
 	client, err := tmint.New(rpc)
 	if err != nil {
-		log.Println(err)
+		log.Println(rpc, err)
 	} else {
 		Chains.Chain[chainName].Node[n].Client = client
 		err = client.Start(ctx)
 		if err != nil {
-			log.Println(err)
+			log.Println(rpc, err)
 		}
 
 		var counter int
@@ -135,9 +135,11 @@ func CheckHealth(chainName string, rpc string, counter int) int {
 }
 
 func CheckStatus(res *coretypes.ResultStatus, chainName string, rpc string) {
+
 	for i, n := range Chains.Chain[chainName].Node {
 		if n.RPC == rpc {
 			status := Chains.Chain[chainName].Node[i].Status
+
 			status.NodeInfo = res.NodeInfo
 			if status.BootstrappedStatus {
 				event.VotingPower(
