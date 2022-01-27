@@ -38,7 +38,7 @@ func BlockProducingParticipation(cfg conf.ChainsConfig, chains []string) {
 
 		for n, nodeConf := range node.Node {
 			if nodeConf.NetworkMonitoringEnabled {
-				log.Printf("Starting network monitoring for %s", nodeConf.RPC)
+				log.Printf("Starting network monitoring at %s", nodeConf.RPC)
 				validatorInfo := FindValidators(n, chainName)
 				if len(validatorInfo.Validators) != 0 {
 					wgNetMonitor.Add(1)
@@ -96,6 +96,7 @@ func Scan(n int, chainName string, v *ValidatorInfo) {
 						v.Validators[nA].Participation.CountMissedSignatureInARow += 1
 					} else {
 						v.Validators[nA].Participation.CountMissedSignatureInARow = 0
+						v.Validators[nA].Participation.Alert = false
 					}
 					if v.Validators[nA].Participation.CountMissedSignatureInARow == int(Chains.Chain[chainName].Info.BlocksMissedInARow) && !v.Validators[nA].Participation.Alert {
 						event.BlockMissedTracker(v.Validators[nA].Moniker, v.Validators[nA].Network, v.Validators[nA].Participation.CountMissedSignatureInARow)
