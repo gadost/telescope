@@ -6,7 +6,7 @@ import (
 	"github.com/gadost/telescope/conf"
 )
 
-var wg sync.WaitGroup
+var wgAlert sync.WaitGroup
 var alertSystems = &conf.MainConfig
 var at = "🔭 Telescope \\| "
 var Importance = importance{
@@ -26,12 +26,14 @@ type importance struct {
 }
 
 func New(i string, m string) {
-	wg.Add(1)
+	wgAlert.Add(1)
 	go Alert(i, m)
+
+	wgAlert.Wait()
 }
 
 func Alert(i string, m string) {
-	defer wg.Done()
+	defer wgAlert.Done()
 	if alertSystems.Telegram.Enabled {
 		TelegramSend(i, m)
 	}

@@ -17,7 +17,7 @@ import (
 
 var ctx = context.TODO()
 var node = &conf.Nodes{}
-var wg sync.WaitGroup
+var wgWatcher sync.WaitGroup
 var Node conf.Node
 var Chains = &conf.ChainsConfig{}
 
@@ -28,26 +28,26 @@ func ThreadsSplitter(cfg conf.ChainsConfig, chains []string) {
 	for _, chainName := range chains {
 		*node = cfg.Chain[chainName]
 
-		for _, nodeConf := range node.Node {
+		for n, nodeConf := range node.Node {
 			if nodeConf.MonitoringEnabled {
 				log.Printf("Starting monitoring for %s", nodeConf.RPC)
-				wg.Add(1)
-				go Thread(nodeConf.RPC, chainName)
+				wgWatcher.Add(1)
+				go Thread(nodeConf.RPC, chainName, n)
 			}
 		}
 	}
 
-	wg.Wait()
+	wgWatcher.Wait()
 }
 
-func Thread(rpc string, chainName string) {
-	defer wg.Done()
+func Thread(rpc string, chainName string, n int) {
+	defer wgWatcher.Done()
 
 	client, err := tmint.New(rpc)
-
 	if err != nil {
 		log.Println(err)
 	} else {
+		Chains.Chain[chainName].Node[n].Client = client
 		err = client.Start(ctx)
 		if err != nil {
 			log.Println(err)

@@ -11,6 +11,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/tendermint/tendermint/libs/bytes"
+	"github.com/tendermint/tendermint/rpc/client/http"
 	"github.com/tendermint/tendermint/rpc/coretypes"
 	"github.com/tendermint/tendermint/types"
 )
@@ -43,6 +44,7 @@ type Nodes struct {
 	Node []Node
 }
 type Node struct {
+	Client                   *http.HTTP
 	Role                     string
 	RPC                      string `toml:"rpc"`
 	NetworkMonitoringEnabled bool   `toml:"network_monitoring_enabled"`

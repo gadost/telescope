@@ -12,6 +12,12 @@ type Context struct {
 	PeersCount  bool
 }
 
+func BlockMissedTracker(moniker, network string, missed int) {
+	alert.New(alert.Importance.Urgent,
+		fmt.Sprintf("Validator '%s' , \nNetwork: %s \n missed %d blocks in a row", moniker, network, missed),
+	)
+}
+
 func Difference(one, two, min int64, ctx Context) (string, bool) {
 	switch d := one - two; {
 	case d > 0 && ((ctx.VotingPower && d > min) || (ctx.PeersCount && two < min)):

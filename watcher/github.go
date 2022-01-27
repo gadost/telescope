@@ -6,10 +6,13 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/gadost/telescope/alert"
 )
+
+var wgGithub sync.WaitGroup
 
 type latestReleaseResponse struct {
 	URL             string    `json:"url"`
@@ -91,13 +94,14 @@ func CheckNewRealeases() {
 			ri := Parse(k.Info.Github)
 			if ri.Domain == "github.com" {
 				lRR := new(latestReleaseResponse)
-				wg.Add(1)
+				wgGithub.Add(1)
 				go Monitor(ri, lRR)
 			} else {
 				log.Printf("Repo %s Not Found of can't be parsed", k.Info.Github)
 			}
 		}
 	}
+	wgGithub.Wait()
 }
 
 type repoInfo struct {
@@ -125,7 +129,7 @@ func Parse(u string) repoInfo {
 }
 
 func Monitor(ri repoInfo, target *latestReleaseResponse) {
-	defer wg.Done()
+	defer wgGithub.Done()
 	for {
 		eP := fmt.Sprintf("https://api.github.com/repos/" + ri.Owner + "/" + ri.RepoName + "/releases/latest")
 		resp, err := http.Get(eP)
