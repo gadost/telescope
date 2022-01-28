@@ -78,8 +78,10 @@ type NodeSyncInfo struct {
 // telescope.toml
 type Config struct {
 	Settings struct {
-		DowntimeInterval     int  `toml:"downtime_interval"`
-		GithubReleaseMonitor bool `toml:"github_release_monitor"`
+		DowntimeInterval     int    `toml:"downtime_interval"`
+		GithubReleaseMonitor bool   `toml:"github_release_monitor"`
+		TimeZone             string `toml:"timezone"`
+		TimeZoneOffset       int    `toml:"timezone_offset"`
 	} `toml:"settings"`
 	Telegram struct {
 		Enabled bool   `toml:"enabled"`

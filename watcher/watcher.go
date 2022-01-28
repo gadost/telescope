@@ -79,7 +79,6 @@ func Thread(rpc string, chainName string, n int) {
 			time.Sleep(10 * time.Second)
 		}
 	}
-
 }
 
 func CheckPeers(res *coretypes.ResultNetInfo, chainName string, rpc string) {
@@ -109,6 +108,7 @@ func CheckHealth(chainName string, rpc string, counter int) int {
 
 			if counter == 5 {
 				Chains.Chain[chainName].Node[i].Status.HealthStateBad = true
+				Chains.Chain[chainName].Node[i].Status.LastSeenAt = Chains.Chain[chainName].Node[i].Status.SyncInfo.LatestBlockTime
 			}
 
 			_, resolved := event.HealthCheck(
@@ -116,14 +116,10 @@ func CheckHealth(chainName string, rpc string, counter int) int {
 				status.NodeInfo.Network,
 				rpc,
 				counter,
-				status.SyncInfo.LatestBlockTime.Sub(status.LastSeenAt),
+				time.Now().UTC().Sub(status.LastSeenAt.UTC()),
 				status.LastSeenAt,
 				status.HealthStateBad,
 			)
-
-			if Chains.Chain[chainName].Node[i].Status.HealthStateBad {
-				Chains.Chain[chainName].Node[i].Status.LastSeenAt = Chains.Chain[chainName].Node[i].Status.SyncInfo.LatestBlockTime
-			}
 
 			if resolved {
 				Chains.Chain[chainName].Node[i].Status.HealthStateBad = false

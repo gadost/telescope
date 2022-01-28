@@ -38,7 +38,7 @@ func BlockProducingParticipation(cfg conf.ChainsConfig, chains []string) {
 
 		for n, nodeConf := range node.Node {
 			if nodeConf.NetworkMonitoringEnabled {
-				log.Printf("Starting network monitoring at %s", nodeConf.RPC)
+				log.Printf("Starting network monitoring for %s at %s ", chainName, nodeConf.RPC)
 				validatorInfo := FindValidators(n, chainName)
 				if len(validatorInfo.Validators) != 0 {
 					wgNetMonitor.Add(1)
@@ -107,9 +107,8 @@ func Scan(n int, chainName string, v *ValidatorInfo) {
 				}
 			}
 
-			time.Sleep(10 * time.Second)
 		}
-
+		time.Sleep(10 * time.Second)
 	}
 
 }
