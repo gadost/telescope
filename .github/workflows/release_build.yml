@@ -1,9 +1,5 @@
 name: Release
 
-before:
-  hooks:
-  - go env -w GO111MODULE=off
-
 on:
   push:
     tags:
@@ -32,4 +28,5 @@ jobs:
           version: latest
           args: release --rm-dist
         env:
+          GO111MODULE: off
           GITHUB_TOKEN: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
