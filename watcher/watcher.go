@@ -154,7 +154,7 @@ func CheckStatus(res *coretypes.ResultStatus, chainName string, rpc string) {
 				res.SyncInfo.CatchingUp,
 				status.NodeInfo.Moniker,
 				status.NodeInfo.Network,
-				res.SyncInfo.LatestBlockHeight-Chains.Chain[chainName].Node[i].Status.SyncInfo.LatestBlockHeight,
+				SearchLatestBlock(chainName)-Chains.Chain[chainName].Node[i].Status.SyncInfo.LatestBlockHeight,
 				Chains.Chain[chainName].Info.BlocksMissedInARow,
 			)
 			Chains.Chain[chainName].Node[i].Status.NodeInfo = res.NodeInfo
@@ -164,6 +164,22 @@ func CheckStatus(res *coretypes.ResultStatus, chainName string, rpc string) {
 	}
 }
 
+func SearchLatestBlock(chainName string) int64 {
+	var lBs []int64
+	for _, n := range Chains.Chain[chainName].Node {
+		lBs = append(lBs, n.Status.SyncInfo.LatestBlockHeight)
+	}
+	var lB = lBs[0]
+	if len(lBs) > 1 {
+
+		for _, v := range lBs {
+			if v > lB {
+				lB = v
+			}
+		}
+	}
+	return lB
+}
 func StatusCollection() string {
 	var collection string
 	var cu string
@@ -182,7 +198,7 @@ func StatusCollection() string {
 
 				collection += "*CatchingUp:* `" + cu + "`\n"
 				collection += "*Last known height:* `" + strconv.Itoa(int(k.Status.SyncInfo.LatestBlockHeight)) + "`\n"
-				collection += "*Last seen at:* `" + k.Status.SyncInfo.LatestBlockTime.Format("2006-01-02 15:04:05") + "`\n"
+				collection += "*Last known block time :* `" + k.Status.SyncInfo.LatestBlockTime.Format("2006-01-02 15:04:05") + "`\n"
 				collection += "`_________________________`\n"
 			} else {
 				if k.MonitoringEnabled {
