@@ -1,5 +1,9 @@
 name: Release
 
+before:
+  hooks:
+  - go env -w GO111MODULE=off
+
 on:
   push:
     tags:
@@ -21,8 +25,6 @@ jobs:
         with:
           go-version: 1.17.5
         id: go
-        env:
-        - GO111MODULE=off  
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@master
