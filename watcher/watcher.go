@@ -48,7 +48,7 @@ func Thread(rpc string, chainName string, n int) {
 		log.Println(rpc, err)
 	} else {
 		Chains.Chain[chainName].Node[n].Client = client
-		err = client.Start(ctx)
+		err = client.Start()
 		if err != nil {
 			log.Println(rpc, err)
 		}
