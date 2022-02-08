@@ -102,6 +102,7 @@ type Config struct {
 	} `toml:"sms"`
 }
 
+// Reset struct while bootstrap loop.
 func (n *Nodes) Reset() {
 	*n = *zNodes
 }

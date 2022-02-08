@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/gadost/telescope/conf"
+	"github.com/gadost/telescope/status"
 	"github.com/gadost/telescope/watcher"
 )
 
@@ -15,7 +16,7 @@ func main() {
 	if conf.MainConfig.Telegram.Enabled {
 		log.Println("Telegram command handler started.")
 		wgMain.Add(1)
-		go watcher.TelegramHandler()
+		go status.TelegramHandler()
 	}
 	if conf.MainConfig.Settings.GithubReleaseMonitor {
 		log.Println("Github repositories monitor started.")

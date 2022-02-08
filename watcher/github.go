@@ -111,6 +111,7 @@ type repoInfo struct {
 	latestReleaseTag string
 }
 
+// Parse github repo from config
 func Parse(u string) repoInfo {
 	//remove / at the end
 	if u[len(u)-1:] == "/" {
@@ -128,6 +129,7 @@ func Parse(u string) repoInfo {
 	return repoInfo{Domain: results["domain"], Owner: results["Owner"], RepoName: results["RepoName"]}
 }
 
+// Monitor check github releases
 func Monitor(ri repoInfo, target *latestReleaseResponse) {
 	defer wgGithub.Done()
 	for {

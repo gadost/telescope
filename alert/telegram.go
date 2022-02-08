@@ -10,9 +10,7 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-type Status struct {
-}
-
+// TelegramSend send message to configured telegram channel
 func TelegramSend(s string, m string) {
 	var pref = tele.Settings{
 		Token:  conf.MainConfig.Telegram.Token,
@@ -29,5 +27,4 @@ func TelegramSend(s string, m string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-
 }

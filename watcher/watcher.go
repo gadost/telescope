@@ -3,8 +3,6 @@ package watcher
 import (
 	"context"
 	"log"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -12,7 +10,6 @@ import (
 	"github.com/gadost/telescope/event"
 	tmint "github.com/tendermint/tendermint/rpc/client/http"
 	"github.com/tendermint/tendermint/rpc/coretypes"
-	tele "gopkg.in/telebot.v3"
 )
 
 var ctx = context.TODO()
@@ -40,6 +37,7 @@ func ThreadsSplitter(cfg conf.ChainsConfig, chains []string) {
 	wgWatcher.Wait()
 }
 
+// Thread for every chain
 func Thread(rpc string, chainName string, n int) {
 	defer wgWatcher.Done()
 
@@ -81,6 +79,7 @@ func Thread(rpc string, chainName string, n int) {
 	}
 }
 
+// CheckPeers check for peers
 func CheckPeers(res *coretypes.ResultNetInfo, chainName string, rpc string) {
 	for i, n := range Chains.Chain[chainName].Node {
 		if n.RPC == rpc {
@@ -101,6 +100,7 @@ func CheckPeers(res *coretypes.ResultNetInfo, chainName string, rpc string) {
 	}
 }
 
+// CheckHealth check health
 func CheckHealth(chainName string, rpc string, counter int) int {
 	for i, n := range Chains.Chain[chainName].Node {
 		if n.RPC == rpc {
@@ -130,6 +130,7 @@ func CheckHealth(chainName string, rpc string, counter int) int {
 	return counter
 }
 
+// CheckStatus check status
 func CheckStatus(res *coretypes.ResultStatus, chainName string, rpc string) {
 
 	for i, n := range Chains.Chain[chainName].Node {
@@ -164,6 +165,7 @@ func CheckStatus(res *coretypes.ResultStatus, chainName string, rpc string) {
 	}
 }
 
+// SearchLatestBlock try to find latest block
 func SearchLatestBlock(chainName string) int64 {
 	var lBs []int64
 	for _, n := range Chains.Chain[chainName].Node {
@@ -179,57 +181,4 @@ func SearchLatestBlock(chainName string) int64 {
 		}
 	}
 	return lB
-}
-func StatusCollection() string {
-	var collection string
-	var cu string
-	var badRPC []string
-	collection = collection + "*Status:*\n\n"
-
-	for i := range Chains.Chain {
-		for _, k := range Chains.Chain[i].Node {
-			if k.Status.SyncInfo.LatestBlockHeight > 0 {
-				collection += "*Net:* `" + k.Status.NodeInfo.Network + "`\n*Moniker:* `" + k.Status.NodeInfo.Moniker + "`\n"
-				if k.Status.SyncInfo.CatchingUp {
-					cu = "Yes"
-				} else {
-					cu = "No"
-				}
-
-				collection += "*CatchingUp:* `" + cu + "`\n"
-				collection += "*Last known height:* `" + strconv.Itoa(int(k.Status.SyncInfo.LatestBlockHeight)) + "`\n"
-				collection += "*Last known block time :* `" + k.Status.SyncInfo.LatestBlockTime.Format("2006-01-02 15:04:05") + "`\n"
-				collection += "`_________________________`\n"
-			} else {
-				if k.MonitoringEnabled {
-					badRPC = append(badRPC, k.RPC)
-				}
-			}
-		}
-	}
-
-	if len(badRPC) > 0 {
-		collection += "*🔴Unreachable RPCs:*\n`" + strings.Join(badRPC, "\n") + "`"
-	}
-
-	return collection
-}
-
-func TelegramHandler() {
-	var pref = tele.Settings{
-		Token:  conf.MainConfig.Telegram.Token,
-		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
-	}
-
-	b, err := tele.NewBot(pref)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	b.Handle("/status", func(c tele.Context) error {
-		return c.Send(StatusCollection(), "MarkdownV2")
-	})
-
-	b.Start()
 }

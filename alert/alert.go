@@ -6,6 +6,7 @@ import (
 	"github.com/gadost/telescope/conf"
 )
 
+// wgAlert is wait group for alerts gorutines
 var wgAlert sync.WaitGroup
 var alertSystems = &conf.MainConfig
 var at = "🔭 Telescope \\| "
@@ -17,6 +18,7 @@ var Importance = importance{
 	GH:      at + "Repo Monitor 🔎",
 }
 
+// importance struct is struct for alert types
 type importance struct {
 	Urgent  string
 	Warning string
@@ -25,6 +27,7 @@ type importance struct {
 	GH      string
 }
 
+// New creates new alert in gorutine
 func New(i string, m string) {
 	wgAlert.Add(1)
 	go Alert(i, m)
@@ -32,6 +35,7 @@ func New(i string, m string) {
 	wgAlert.Wait()
 }
 
+// Alert send alerts to configured channels
 func Alert(i string, m string) {
 	defer wgAlert.Done()
 	if alertSystems.Telegram.Enabled {

@@ -32,6 +32,7 @@ func Proposal() {
 
 }
 
+// BlockProducingParticipation check blocks for our sign
 func BlockProducingParticipation(cfg conf.ChainsConfig, chains []string) {
 	for _, chainName := range chains {
 		*node = cfg.Chain[chainName]
@@ -50,6 +51,7 @@ func BlockProducingParticipation(cfg conf.ChainsConfig, chains []string) {
 	wgNetMonitor.Wait()
 }
 
+// FindValidators find validators in configs
 func FindValidators(n int, chainName string) *ValidatorInfo {
 	// Need some sleep for preventing panic during bootstrap
 	time.Sleep(10 * time.Second)
@@ -67,6 +69,7 @@ func FindValidators(n int, chainName string) *ValidatorInfo {
 	return validatorInfo
 }
 
+// Scan for block participating
 func Scan(n int, chainName string, v *ValidatorInfo) {
 	client := Chains.Chain[chainName].Node[n].Client
 	for {

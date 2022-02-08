@@ -12,12 +12,14 @@ type Context struct {
 	PeersCount  bool
 }
 
+// BlockMissedTracker check missed blocks in a row
 func BlockMissedTracker(moniker, network string, missed int) {
 	alert.New(alert.Importance.Urgent,
 		fmt.Sprintf("Validator '%s' , \nNetwork: %s \n Signature missed  in last %v blocks in a row", moniker, network, missed),
 	)
 }
 
+// Difference diff two values , comparing with minimal difference and return increase/decrease message for alert
 func Difference(one, two, min int64, ctx Context) (string, bool) {
 	switch d := one - two; {
 	case d > 0 && ((ctx.VotingPower && d > min) || (ctx.PeersCount && two < min)):
@@ -29,6 +31,7 @@ func Difference(one, two, min int64, ctx Context) (string, bool) {
 	}
 }
 
+// VotingPower comparing voting power of validator , if changed - send alert
 func VotingPower(sVP, rVP, sVPC int64, moniker, network string) {
 	diff, changed := Difference(sVP, rVP, sVPC, Context{VotingPower: true})
 	if changed {
@@ -38,6 +41,7 @@ func VotingPower(sVP, rVP, sVPC int64, moniker, network string) {
 	}
 }
 
+// PeersCount check for peers count, alert if changed
 func PeersCount(sPC, rPC int, moniker, network string) {
 	diff, changed := Difference(int64(sPC), int64(rPC), 10, Context{PeersCount: true})
 	if changed {
@@ -47,10 +51,7 @@ func PeersCount(sPC, rPC int, moniker, network string) {
 	}
 }
 
-func ConnectionTroubles(...interface{}) bool {
-	return true
-}
-
+// CatchingUpState check cachingUp state , alert if true
 func CatchingUpState(sCU, rCU bool, moniker, network string, diff, maxDiff int64) {
 	switch sCU {
 	case false:
@@ -77,6 +78,7 @@ func CatchingUpState(sCU, rCU bool, moniker, network string, diff, maxDiff int64
 	}
 }
 
+// replace nil string with "UNKNOWN"
 func Unknown(s string) string {
 	if s == "" {
 		return "UNKNOWN"
@@ -84,6 +86,8 @@ func Unknown(s string) string {
 		return s
 	}
 }
+
+// HealthCheck check node health
 func HealthCheck(moniker, network, rpc string, counter int, timeDelta time.Duration, lastSeenAt time.Time, lastStatus bool) (bool, bool) {
 	var resolved = false
 	if counter == 5 {
@@ -95,9 +99,13 @@ func HealthCheck(moniker, network, rpc string, counter int, timeDelta time.Durat
 				rpc,
 			),
 		)
+
 		return true, resolved
+
 	} else if counter > 5 {
+
 		return true, resolved
+
 	} else if counter == 0 && lastStatus {
 		alert.New(
 			alert.Importance.OK,
@@ -108,11 +116,17 @@ func HealthCheck(moniker, network, rpc string, counter int, timeDelta time.Durat
 				timeDelta,
 			),
 		)
+
 		resolved = true
 		return false, resolved
+
 	} else if counter == 0 && !lastStatus {
+
 		return false, resolved
+
 	} else {
+
 		return true, resolved
+
 	}
 }
