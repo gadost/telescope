@@ -4,8 +4,10 @@ downtime_interval = 300
 enabled = true
 token = "1234567:SecRetTokernByBoTfaTher"
 chat_id = "-10000000"
-
 [discord]
+enabled = true
+token = "SecRetTokernByBoTfaTher"
+channel_id = 1234567890
 [twilio]
 [mail]
 [sms]

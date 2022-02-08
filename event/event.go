@@ -15,7 +15,7 @@ type Context struct {
 // BlockMissedTracker check missed blocks in a row
 func BlockMissedTracker(moniker, network string, missed int) {
 	alert.New(alert.Importance.Urgent,
-		fmt.Sprintf("Validator '%s' , \nNetwork: %s \n Signature missed  in last %v blocks in a row", moniker, network, missed),
+		fmt.Sprintf("Validator '%s' , \nNetwork: %s \nSignature missed  in last %v blocks in a row", moniker, network, missed),
 	)
 }
 

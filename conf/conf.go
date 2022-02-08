@@ -89,7 +89,9 @@ type Config struct {
 		ChatID  string `toml:"chat_id"`
 	} `toml:"telegram"`
 	Discord struct {
-		Enabled bool `toml:"enabled"`
+		Enabled   bool   `toml:"enabled"`
+		Token     string `toml:"token"`
+		ChannelID int    `toml:"channel_id"`
 	} `toml:"discord"`
 	Twilio struct {
 		Enabled bool `toml:"enabled"`

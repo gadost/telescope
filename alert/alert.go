@@ -11,7 +11,7 @@ var wgAlert sync.WaitGroup
 var alertSystems = &conf.MainConfig
 var at = "🔭 Telescope \\| "
 var Importance = importance{
-	Urgent:  at + "Urgent🔴",
+	Urgent:  at + "Urgent 🔴",
 	Warning: at + "Warning ⚠️",
 	Info:    at + "Info ℹ️",
 	OK:      at + "OK ✅",
@@ -41,10 +41,10 @@ func Alert(i string, m string) {
 	if alertSystems.Telegram.Enabled {
 		TelegramSend(i, m)
 	}
-	/**	if alertSystems.Discord.Enabled {
-
-		}
-		if alertSystems.Mail.Enabled {
+	if alertSystems.Discord.Enabled {
+		DiscordSend(i, m)
+	}
+	/**		if alertSystems.Mail.Enabled {
 
 		}
 		if alertSystems.Sms.Enabled {

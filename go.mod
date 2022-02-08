@@ -10,6 +10,7 @@ require (
 
 require (
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
+	github.com/bwmarrin/discordgo v0.23.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
