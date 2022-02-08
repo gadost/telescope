@@ -4,13 +4,13 @@ go 1.17
 
 require (
 	github.com/BurntSushi/toml v1.0.0
+	github.com/bwmarrin/discordgo v0.23.2
 	github.com/tendermint/tendermint v0.35.1
 	gopkg.in/telebot.v3 v3.0.0-20220130115853-f0291132d3c3
 )
 
 require (
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
-	github.com/bwmarrin/discordgo v0.23.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect

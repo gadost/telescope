@@ -31,7 +31,9 @@ token = "1234567:SecRetTokernByBoTfaTher"
 # "chat":"id" : "<CHAT_ID>"
 chat_id = "-10000000"
 [discord]
-# will be implemented in future updates
+enabled = true
+token = "SecRetTokernByBoTfaTher"
+channel_id = 1234567890
 [twilio]
 # will be implemented in future updates
 [mail]
