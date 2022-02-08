@@ -20,7 +20,7 @@ func DiscordSend(s string, m string) {
 		log.Println("error opening connection,", err)
 		return
 	}
-	dg.ChannelMessageSend(fmt.Sprint(conf.MainConfig.Discord.ChannelID), "***___"+s+"___***"+": \n"+m)
+	dg.ChannelMessageSend(fmt.Sprint(conf.MainConfig.Discord.ChannelID), "***"+s+"***"+": \n"+m)
 
 	dg.Close()
 

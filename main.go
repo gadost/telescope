@@ -14,9 +14,14 @@ var wgMain sync.WaitGroup
 func main() {
 	cfg, chains := conf.ConfLoad()
 	if conf.MainConfig.Telegram.Enabled {
-		log.Println("Telegram command handler started.")
+		log.Println("Telegram commands handler bot started.")
 		wgMain.Add(1)
 		go status.TelegramHandler()
+	}
+	if conf.MainConfig.Discord.Enabled {
+		log.Println("Discord commands handler bot started.")
+		wgMain.Add(1)
+		go status.DiscordHandler()
 	}
 	if conf.MainConfig.Settings.GithubReleaseMonitor {
 		log.Println("Github repositories monitor started.")
