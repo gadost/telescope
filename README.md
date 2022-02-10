@@ -16,6 +16,9 @@ telescope init
 # fill <chainname>.toml
 telescope config generate --name <chainname>
 
+# verify 
+telescope config verify
+
 # start telescope service
 telescope start
 ```
