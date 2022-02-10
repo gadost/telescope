@@ -64,6 +64,10 @@ func init() {
 }
 
 func BootstrapChainConf() {
+	if _, err := os.Stat(conf.UserHome + "/.telescope/conf.d/" + ChainName + ".toml"); !os.IsNotExist(err) {
+		fmt.Printf("config file for chain %s exits", ChainName)
+		os.Exit(1)
+	}
 	for {
 		fmt.Fprint(os.Stderr, "Add new chain "+ChainName+" ?(Y/n): ")
 		s, _ = r.ReadString('\n')
