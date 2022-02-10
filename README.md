@@ -26,7 +26,7 @@ enabled = true
 token = "1234567:SecRetTokernByBoTfaTher"
 # telegram chat_id . You can add bot to channel/group or send alert to DM. 
 # Collect chat_id:
-# send any message to channel where you was bot added , then 
+# send any message to channel where this bot added , then 
 # curl https://api.telegram.org/bot<TOKEN>/getUpdates and find for
 # "chat":"id" : "<CHAT_ID>"
 chat_id = "-10000000"
