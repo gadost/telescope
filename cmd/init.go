@@ -26,7 +26,7 @@ var initCmd = &cobra.Command{
 		BootstrapSettings()
 		BootstrapTelegram()
 		BootstrapDiscord()
-		Write()
+		Write("telescope.toml", TelescopeConfBasic)
 	},
 }
 var (
@@ -180,15 +180,15 @@ channel_id = %s
 	return Discord
 }
 
-func Write() {
-	f, err := os.Create(conf.UserHome + "/.telescope/conf.d" + "/telescope.toml")
+func Write(cfgName string, cfg string) {
+	f, err := os.Create(conf.UserHome + "/.telescope/conf.d/" + cfgName)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
 
-	data := []byte(TelescopeConfBasic)
+	data := []byte(cfg)
 
 	_, err = f.Write(data)
 	if err != nil {

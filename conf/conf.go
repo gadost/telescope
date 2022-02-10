@@ -36,6 +36,7 @@ type Nodes struct {
 		Github             string `toml:"github"`
 		Mainnet            bool
 		Telegram           bool
+		Discord            bool
 		VotingPowerChanges int64 `toml:"voting_power_changes"`
 		BlocksMissedInARow int64 `toml:"blocks_missed_in_a_row"`
 		PeersCount         int64 `toml:"peers_count"`
