@@ -8,11 +8,11 @@ import (
 	"github.com/gadost/telescope/conf"
 )
 
-func DiscordHandler() error {
+func DiscordHandler() {
 	dg, err := discordgo.New("Bot " + conf.MainConfig.Discord.Token)
 	if err != nil {
 		log.Println("error creating Discord session,", err)
-		return err
+		return
 	}
 	dg.AddHandler(messageCreate)
 
@@ -20,12 +20,11 @@ func DiscordHandler() error {
 	err = dg.Open()
 	if err != nil {
 		fmt.Println("error opening connection,", err)
-		return err
+		return
 	}
 
 	// Cleanly close down the Discord session.
 	defer dg.Close()
-	return err
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
