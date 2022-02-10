@@ -118,7 +118,7 @@ func Parse(u string) repoInfo {
 		u = u[:len(u)-1]
 	}
 
-	var re = regexp.MustCompile(`^(https|git)(:\/\/|@)(?P<domain>[^\/:]+)[\/:](?P<Owner>[^\/:]+)\/(?P<RepoName>.+)$`)
+	var re = regexp.MustCompile(`^(https|git)(:\/\/|@)(?P<Domain>[^\/:]+)[\/:](?P<Owner>[^\/:]+)\/(?P<RepoName>.+)$`)
 	match := re.FindStringSubmatch(u)
 
 	results := map[string]string{}
@@ -126,7 +126,7 @@ func Parse(u string) repoInfo {
 		results[re.SubexpNames()[i]] = name
 	}
 
-	return repoInfo{Domain: results["domain"], Owner: results["Owner"], RepoName: results["RepoName"]}
+	return repoInfo{Domain: results["Domain"], Owner: results["Owner"], RepoName: results["RepoName"]}
 }
 
 // Monitor check github releases
