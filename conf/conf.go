@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"flag"
 	"io/fs"
 	"io/ioutil"
 	"log"
@@ -23,7 +22,7 @@ var (
 	ConfdPath      string
 	infra          Nodes
 	mainConfigName = "telescope.toml"
-	userHome       = os.Getenv("HOME")
+	UserHome       = os.Getenv("HOME")
 	zNodes         = &Nodes{}
 )
 
@@ -109,13 +108,14 @@ func (n *Nodes) Reset() {
 	*n = *zNodes
 }
 
-func init() {
-	flag.StringVar(&ConfdPath, "confd", userHome+"/.telescope/conf.d", "path to configs dir")
-	flag.Parse()
-}
+//func init() {
+//	flag.StringVar(&ConfdPath, "confd", userHome+"/.telescope/conf.d", "path to configs dir")
+//	flag.Parse()
+//}
 
 //Check existence of confd folder
-func ConfLoad() (ChainsConfig, []string) {
+func ConfLoad(c string) (ChainsConfig, []string) {
+	ConfdPath = c
 	if _, err := os.Stat(ConfdPath); !os.IsNotExist(err) {
 		files, err := ioutil.ReadDir(ConfdPath)
 		if err != nil {

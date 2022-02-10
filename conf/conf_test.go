@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -10,11 +9,9 @@ var _ = func() bool {
 	return true
 }()
 
-func TestDebugReturn(t *testing.T) {
-	cfg, chains := ConfLoad()
-	fmt.Println(cfg)
-	fmt.Println(chains)
-	fmt.Println(chains[0])
-	fmt.Println(cfg.Chain["gravity"].Node[0].Role)
-	fmt.Println(cfg.Chain["gravity"].Info.Mainnet)
+func TestConfig(t *testing.T) {
+	cfg, chains := ConfLoad(UserHome)
+	t.Log(chains)
+	t.Log(cfg)
+
 }
