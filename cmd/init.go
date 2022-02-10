@@ -25,6 +25,7 @@ var initCmd = &cobra.Command{
 		Bootstrap()
 		BootstrapSettings()
 		BootstrapTelegram()
+		BootstrapDiscord()
 		Write()
 	},
 }
@@ -89,7 +90,6 @@ func BootstrapTelegram() bool {
 		} else if s == "N\n" || s == "n\n" {
 			Telegram = false
 			return Telegram
-			break
 		}
 	}
 
@@ -99,7 +99,7 @@ func BootstrapTelegram() bool {
 		fmt.Fprint(os.Stderr, "Go to https://t.me/BotFather and create newbot. Enter bot token: ")
 		token, _ = r.ReadString('\n')
 		token = strings.TrimSuffix(token, "\n")
-		fmt.Fprint(os.Stderr, "Enter chat id: ")
+		fmt.Fprint(os.Stderr, "Add bot to channel or start chat with bot. Enter chat id: ")
 		chatID, _ = r.ReadString('\n')
 		if chatID != "" {
 			chatID = strings.TrimSuffix(chatID, "\n")
@@ -117,7 +117,6 @@ func BootstrapTelegram() bool {
 				fmt.Println("retry again.")
 			}
 		}
-
 	}
 
 	TelescopeConfBasic += fmt.Sprintf(`
@@ -131,8 +130,54 @@ chat_id = "%s"
 	return Telegram
 }
 
-func BootstrapDiscord() {
+func BootstrapDiscord() bool {
+	for {
+		fmt.Fprint(os.Stderr, "Enable discord notifications? (Y/n)"+" ")
+		s, _ = r.ReadString('\n')
+		if s == "Y\n" || s == "y\n" || s == "\n" {
+			Discord = true
+			break
+		} else if s == "N\n" || s == "n\n" {
+			Discord = false
+			return Discord
+		}
+	}
 
+	var token string
+	var channelID string
+	for {
+		fmt.Fprint(os.Stderr, "Go to https://discord.com/developers/applications and create newbot. Enter bot token: ")
+		token, _ = r.ReadString('\n')
+		token = strings.TrimSuffix(token, "\n")
+		fmt.Fprint(os.Stderr, `Enter channel id 
+( you can obtain channel id from channel url f.e. https://discord.com/channels/XXXXXX/YYYYY where YYYYY = channel Id ): `)
+		channelID, _ = r.ReadString('\n')
+		if channelID != "" {
+			channelID = strings.TrimSuffix(channelID, "\n")
+			fmt.Print("Sending ping.")
+			err := alert.DiscordSendTest(token, channelID)
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				var pass string
+				fmt.Fprint(os.Stderr, " Ping received?(Y/n) ")
+				pass, _ = r.ReadString('\n')
+				if pass == "Y\n" || pass == "y\n" || pass == "\n" {
+					break
+				}
+				fmt.Println("retry again.")
+			}
+		}
+	}
+	TelescopeConfBasic += fmt.Sprintf(`
+[discord]
+enabled = %t
+token = "%s"
+channel_id = %s
+`, Discord, token, channelID)
+
+	fmt.Print(TelescopeConfBasic)
+	return Discord
 }
 
 func Write() {

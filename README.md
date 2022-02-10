@@ -10,7 +10,7 @@ go install github.com/gadost/telescope@latest
 ## Configure
 
 ```
-# fill telescope.toml
+# fill telescope.toml , telescope -h for more details
 telescope init
 
 # fill <chainname>.toml

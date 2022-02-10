@@ -40,6 +40,6 @@ func TelegramSendTest(t string, c string) error {
 	}
 	var chatID, _ = strconv.ParseInt(c, 10, 64)
 	var to = &tele.Chat{ID: chatID}
-	_, err = b.Send(to, "Ping")
+	_, err = b.Send(to, "Pong")
 	return err
 }

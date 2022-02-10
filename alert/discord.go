@@ -25,3 +25,23 @@ func DiscordSend(s string, m string) {
 	dg.Close()
 
 }
+
+func DiscordSendTest(t string, c string) error {
+	dg, err := discordgo.New("Bot " + t)
+	if err != nil {
+		log.Println("error creating Discord session,", err)
+		return err
+	}
+
+	err = dg.Open()
+	if err != nil {
+		log.Println("error opening connection,", err)
+		return err
+	}
+	dg.ChannelMessageSend(fmt.Sprint(c), "***Pong***")
+
+	dg.Close()
+
+	return err
+
+}
