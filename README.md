@@ -10,8 +10,14 @@ go install github.com/gadost/telescope@latest
 ## Configure
 
 ```
-mkdir -p $HOME/.telescope/conf.d
-touch $HOME/.telescope/conf.d/telescope.toml
+# fill telescope.toml
+telescope init
+
+# fill <chainname>.toml
+telescope config generate --name <chainname>
+
+# start telescope service
+telescope start
 ```
 
 example telescope.toml
@@ -81,6 +87,6 @@ monitoring_enabled = false
 ## Start monitoring
 
 ```
-telescope -confd <PATH_TO_CONF.D>
+telescope start
 ```
-default `$HOME/.telescope/conf.d`
+default configdir `$HOME/.telescope/conf.d`
