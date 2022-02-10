@@ -115,7 +115,17 @@ func Scan(n int, chainName string, v *ValidatorInfo) {
 			}
 
 		}
-		time.Sleep(10 * time.Second)
+		for i := 0; i >= 0; i++ {
+			lb, err := client.ABCIInfo(ctx)
+			if err == nil {
+				if lb.Response.LastBlockHeight > v.Validators[0].Participation.CheckedBlock {
+					v.Validators[0].Participation.CheckedBlock = lb.Response.LastBlockHeight
+					i = -2
+				} else {
+					time.Sleep(1 * time.Second)
+				}
+			}
+		}
 	}
 
 }
