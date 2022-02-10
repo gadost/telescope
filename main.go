@@ -1,37 +1,11 @@
+/*
+Copyright © 2022 Max Nikolaev nikolaev.makc@gmail.com
+
+*/
 package main
 
-import (
-	"log"
-	"sync"
-
-	"github.com/gadost/telescope/conf"
-	"github.com/gadost/telescope/status"
-	"github.com/gadost/telescope/watcher"
-)
-
-var wgMain sync.WaitGroup
+import "github.com/gadost/telescope/cmd"
 
 func main() {
-	cfg, chains := conf.ConfLoad()
-	if conf.MainConfig.Telegram.Enabled {
-		log.Println("Telegram commands handler bot started.")
-		wgMain.Add(1)
-		go status.TelegramHandler()
-	}
-	if conf.MainConfig.Discord.Enabled {
-		log.Println("Discord commands handler bot started.")
-		wgMain.Add(1)
-		go status.DiscordHandler()
-	}
-	if conf.MainConfig.Settings.GithubReleaseMonitor {
-		log.Println("Github repositories monitor started.")
-		wgMain.Add(1)
-		go watcher.CheckNewRealeases()
-	}
-	wgMain.Add(1)
-	go watcher.BlockProducingParticipation(cfg, chains)
-	log.Println("Alert system started for chains:", chains)
-	watcher.ThreadsSplitter(cfg, chains)
-
-	wgMain.Wait()
+	cmd.Execute()
 }

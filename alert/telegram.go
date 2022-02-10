@@ -28,3 +28,18 @@ func TelegramSend(s string, m string) {
 		fmt.Println(err)
 	}
 }
+
+func TelegramSendTest(t string, c string) error {
+	var pref = tele.Settings{
+		Token:  t,
+		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
+	}
+	b, err := tele.NewBot(pref)
+	if err != nil {
+		return err
+	}
+	var chatID, _ = strconv.ParseInt(c, 10, 64)
+	var to = &tele.Chat{ID: chatID}
+	_, err = b.Send(to, "Ping")
+	return err
+}

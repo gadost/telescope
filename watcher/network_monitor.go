@@ -101,10 +101,14 @@ func Scan(n int, chainName string, v *ValidatorInfo) {
 						v.Validators[nA].Participation.CountMissedSignatureInARow = 0
 						v.Validators[nA].Participation.Alert = false
 					}
-					if v.Validators[nA].Participation.CountMissedSignatureInARow == int(Chains.Chain[chainName].Info.BlocksMissedInARow) &&
+					if v.Validators[nA].Participation.CountMissedSignatureInARow ==
+						int(Chains.Chain[chainName].Info.BlocksMissedInARow) &&
 						!v.Validators[nA].Participation.Alert &&
 						Chains.Chain[chainName].Info.BlocksMissedInARow != 0 {
-						event.BlockMissedTracker(v.Validators[nA].Moniker, v.Validators[nA].Network, v.Validators[nA].Participation.CountMissedSignatureInARow)
+						event.BlockMissedTracker(v.Validators[nA].Moniker,
+							v.Validators[nA].Network,
+							v.Validators[nA].Participation.CountMissedSignatureInARow,
+						)
 						v.Validators[nA].Participation.Alert = true
 					}
 				}
