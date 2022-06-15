@@ -154,7 +154,7 @@ func Monitor(ri repoInfo, target *latestReleaseResponse) {
 			if target.Body != "" {
 				releaseDesc = fmt.Sprintf("Release desc: %s", target.Body)
 			}
-			alert.New(alert.Importance.GH, fmt.Sprintf("Release %s of %s has just been released.\n%s", target.TagName, ri.RepoName, releaseDesc))
+			alert.NewAlertGithubRelease(target.TagName, ri.RepoName, releaseDesc).Send()
 			ri.latestReleaseTag = target.TagName
 		}
 		// Rate limit 60 per hour , we will do only 12 requests per hour

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gadost/telescope/alert"
+	"github.com/gadost/telescope/conf"
 )
 
 type Context struct {
@@ -12,11 +13,17 @@ type Context struct {
 	PeersCount  bool
 }
 
+type Status conf.NodeStatus
+
+type Event struct {
+	Name       string
+	Importance string
+	Status     Status
+}
+
 // BlockMissedTracker check missed blocks in a row
 func BlockMissedTracker(moniker, network string, missed int) {
-	alert.New(alert.Importance.Urgent,
-		fmt.Sprintf("Validator '%s' , \nNetwork: %s \nSignature missed  in last %v blocks in a row", moniker, network, missed),
-	)
+	alert.NewAlertBlockMissed(moniker, network, missed).Send()
 }
 
 // Difference diff two values , comparing with minimal difference and return increase/decrease message for alert
@@ -35,9 +42,7 @@ func Difference(one, two, min int64, ctx Context) (string, bool) {
 func VotingPower(sVP, rVP, sVPC int64, moniker, network string) {
 	diff, changed := Difference(sVP, rVP, sVPC, Context{VotingPower: true})
 	if changed {
-		alert.New(alert.Importance.Info,
-			fmt.Sprintf("Voting Power of '%s' , \nNetwork: %s \n%s", moniker, network, diff),
-		)
+		alert.NewAlertVotingPower(moniker, network, diff).Send()
 	}
 }
 
@@ -45,9 +50,7 @@ func VotingPower(sVP, rVP, sVPC int64, moniker, network string) {
 func PeersCount(sPC, rPC int, moniker, network string) {
 	diff, changed := Difference(int64(sPC), int64(rPC), 10, Context{PeersCount: true})
 	if changed {
-		alert.New(alert.Importance.Info,
-			fmt.Sprintf("Peers count of '%s' , \nNetwork: %s \n%s", moniker, network, diff),
-		)
+		alert.NewAlertPeersCount(moniker, network, diff).Send()
 	}
 }
 
@@ -57,23 +60,15 @@ func CatchingUpState(sCU, rCU bool, moniker, network string, diff, maxDiff int64
 	case false:
 		switch rCU {
 		case true:
-			alert.New(
-				alert.Importance.Urgent,
-				fmt.Sprintf("Node '%s'\n Net:%s\n Catching up", moniker, network),
-			)
+			alert.NewAlertCatchingUp(moniker, network).Send()
 			if diff > maxDiff {
-				alert.New(
-					alert.Importance.Urgent,
-					fmt.Sprintf("Node '%s' %v blocks behind", moniker, diff),
-				)
+				alert.NewAlertBlocksDelta(moniker, diff).Send()
 			}
 		}
 	case true:
 		switch rCU {
 		case false:
-			alert.New(alert.Importance.OK,
-				fmt.Sprintf("Node '%s' Synced", moniker),
-			)
+			alert.NewAlertSynced(moniker).Send()
 		}
 	}
 }
@@ -91,42 +86,22 @@ func Unknown(s string) string {
 func HealthCheck(moniker, network, rpc string, counter int, timeDelta time.Duration, lastSeenAt time.Time, lastStatus bool) (bool, bool) {
 	var resolved = false
 	if counter == 5 {
-		alert.New(
-			alert.Importance.Urgent,
-			fmt.Sprintf("Experiencing delays when trying to access '%s' node. \nNet: %s , \nNode RPC: %s",
-				Unknown(moniker),
-				Unknown(network),
-				rpc,
-			),
-		)
-
+		alert.NewAlertAccessDelays(Unknown(moniker), Unknown(network), rpc).Send()
 		return true, resolved
-
 	} else if counter > 5 {
-
 		return true, resolved
-
 	} else if counter == 0 && lastStatus {
-		alert.New(
-			alert.Importance.OK,
-			fmt.Sprintf("Node '%s'\nNet: %s\n is now accessible.\nNode became inaccessible at %s and was inaccessible for (at most) %s",
-				Unknown(moniker),
-				Unknown(network),
-				lastSeenAt,
-				timeDelta,
-			),
-		)
-
+		alert.NewAlertAccessRestored(
+			Unknown(moniker),
+			Unknown(network),
+			lastSeenAt,
+			timeDelta,
+		).Send()
 		resolved = true
 		return false, resolved
-
 	} else if counter == 0 && !lastStatus {
-
 		return false, resolved
-
 	} else {
-
 		return true, resolved
-
 	}
 }
