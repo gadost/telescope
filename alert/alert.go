@@ -44,7 +44,8 @@ func Alert(i string, m string) {
 	if alertSystems.Discord.Enabled {
 		DiscordSend(i, m)
 	}
-	/**		if alertSystems.Mail.Enabled {
+	/**
+	if alertSystems.Mail.Enabled {
 
 		}
 		if alertSystems.Sms.Enabled {
