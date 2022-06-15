@@ -40,10 +40,10 @@ func BlockProducingParticipation(cfg conf.ChainsConfig, chains []string) {
 		for n, nodeConf := range node.Node {
 			if nodeConf.NetworkMonitoringEnabled {
 				log.Printf("Starting network monitoring for %s at %s ", chainName, nodeConf.RPC)
-				validatorInfo := FindValidators(n, chainName)
+				validatorInfo := FindValidators(chainName)
 				if len(validatorInfo.Validators) != 0 {
 					wgNetMonitor.Add(1)
-					go Scan(n, chainName, validatorInfo)
+					go validatorInfo.Scan(n, chainName)
 				}
 			}
 		}
@@ -52,7 +52,7 @@ func BlockProducingParticipation(cfg conf.ChainsConfig, chains []string) {
 }
 
 // FindValidators find validators in configs
-func FindValidators(n int, chainName string) *ValidatorInfo {
+func FindValidators(chainName string) *ValidatorInfo {
 	// Need some sleep for preventing panic during bootstrap
 	time.Sleep(10 * time.Second)
 	var validatorInfo = new(ValidatorInfo)
@@ -70,24 +70,24 @@ func FindValidators(n int, chainName string) *ValidatorInfo {
 }
 
 // Scan for block participating
-func Scan(n int, chainName string, v *ValidatorInfo) {
+func (v *ValidatorInfo) Scan(n int, chainName string) {
 	client := Chains.Chain[chainName].Node[n].Client
 	for {
 		health, err := client.Health(ctx)
 		if err != nil {
-			log.Printf("Health: %s : Experiencing connection troubles %+v", Chains.Chain[chainName].Node[n].RPC, health)
+			log.Printf("Health: %s : Experiencing connection troubles %+v",
+				Chains.Chain[chainName].Node[n].RPC, health,
+			)
 		} else {
 			if v.Validators[0].Participation.CheckedBlock == 0 {
 				status, err := client.Status(ctx)
 				if err == nil {
 					v.Validators[0].Participation.CheckedBlock = status.SyncInfo.LatestBlockHeight
 				}
-
 			}
 			commit, _ := client.Commit(ctx, &v.Validators[0].Participation.CheckedBlock)
 			if commit != nil {
 				for nA, vA := range v.Validators {
-
 					s := len(commit.Commit.Signatures)
 					t := len(commit.Commit.Signatures)
 					for _, k := range commit.Commit.Signatures {
@@ -127,5 +127,4 @@ func Scan(n int, chainName string, v *ValidatorInfo) {
 			}
 		}
 	}
-
 }

@@ -16,9 +16,13 @@ type Context struct {
 type Status conf.NodeStatus
 
 type Event struct {
-	Name       string
-	Importance string
-	Status     Status
+	Moniker string
+	Status  Status
+}
+
+func New() *Event {
+
+	return &Event{}
 }
 
 // BlockMissedTracker check missed blocks in a row

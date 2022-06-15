@@ -41,15 +41,15 @@ func New(i, m string) *Alert {
 // New creates new alert in gorutine
 func (a *Alert) Send() {
 	wgAlert.Add(1)
-	go func(i, m string) {
+	go func(a *Alert) {
 		defer wgAlert.Done()
 		if alertSystems.Telegram.Enabled {
-			TelegramSend(i, m)
+			a.TelegramSend()
 		}
 		if alertSystems.Discord.Enabled {
-			DiscordSend(i, m)
+			a.DiscordSend()
 		}
-	}(a.Importance, a.Message)
+	}(a)
 
 	wgAlert.Wait()
 }
