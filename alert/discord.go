@@ -8,7 +8,7 @@ import (
 	"github.com/gadost/telescope/conf"
 )
 
-func DiscordSend(s string, m string) {
+func (a *Alert) DiscordSend() {
 	dg, err := discordgo.New("Bot " + conf.MainConfig.Discord.Token)
 	if err != nil {
 		log.Println("error creating Discord session,", err)
@@ -20,10 +20,12 @@ func DiscordSend(s string, m string) {
 		log.Println("error opening connection,", err)
 		return
 	}
-	dg.ChannelMessageSend(fmt.Sprint(conf.MainConfig.Discord.ChannelID), "***"+s+"***"+": \n"+m)
+	dg.ChannelMessageSend(
+		fmt.Sprint(conf.MainConfig.Discord.ChannelID),
+		"***"+a.Importance+"***"+": \n"+a.Message,
+	)
 
 	dg.Close()
-
 }
 
 func DiscordSendTest(t string, c string) error {
