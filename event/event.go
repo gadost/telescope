@@ -21,7 +21,6 @@ type Event struct {
 }
 
 func New() *Event {
-
 	return &Event{}
 }
 
@@ -87,7 +86,14 @@ func Unknown(s string) string {
 }
 
 // HealthCheck check node health
-func HealthCheck(moniker, network, rpc string, counter int, timeDelta time.Duration, lastSeenAt time.Time, lastStatus bool) (bool, bool) {
+func HealthCheck(
+	moniker,
+	network,
+	rpc string,
+	counter int,
+	timeDelta time.Duration,
+	lastSeenAt time.Time,
+	lastStatus bool) (bool, bool) {
 	var resolved = false
 	if counter == 5 {
 		alert.NewAlertAccessDelays(Unknown(moniker), Unknown(network), rpc).Send()

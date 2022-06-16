@@ -43,6 +43,7 @@ type Nodes struct {
 	}
 	Node []Node
 }
+
 type Node struct {
 	Client                   *http.HTTP
 	Role                     string
@@ -109,11 +110,6 @@ func (n *Nodes) Reset() {
 	*n = *zNodes
 }
 
-//func init() {
-//	flag.StringVar(&ConfdPath, "confd", userHome+"/.telescope/conf.d", "path to configs dir")
-//	flag.Parse()
-//}
-
 //Check existence of confd folder
 func ConfLoad(c string) (ChainsConfig, []string) {
 	ConfdPath = c
@@ -130,7 +126,6 @@ func ConfLoad(c string) (ChainsConfig, []string) {
 
 // buildConf load parsed config to struct
 func buildConf(files []fs.FileInfo) {
-
 	for _, f := range files {
 		switch f.Name() {
 		case mainConfigName:
