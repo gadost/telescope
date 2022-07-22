@@ -86,14 +86,8 @@ func Unknown(s string) string {
 }
 
 // HealthCheck check node health
-func HealthCheck(
-	moniker,
-	network,
-	rpc string,
-	counter int,
-	timeDelta time.Duration,
-	lastSeenAt time.Time,
-	lastStatus bool) (bool, bool) {
+func HealthCheck(moniker, network, rpc string, counter int,
+	timeDelta time.Duration, lastSeenAt time.Time, lastStatus bool) (bool, bool) {
 	var resolved = false
 	if counter == 5 {
 		alert.NewAlertAccessDelays(Unknown(moniker), Unknown(network), rpc).Send()
@@ -101,12 +95,7 @@ func HealthCheck(
 	} else if counter > 5 {
 		return true, resolved
 	} else if counter == 0 && lastStatus {
-		alert.NewAlertAccessRestored(
-			Unknown(moniker),
-			Unknown(network),
-			lastSeenAt,
-			timeDelta,
-		).Send()
+		alert.NewAlertAccessRestored(Unknown(moniker), Unknown(network), lastSeenAt, timeDelta).Send()
 		resolved = true
 		return false, resolved
 	} else if counter == 0 && !lastStatus {

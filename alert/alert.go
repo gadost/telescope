@@ -8,16 +8,24 @@ import (
 	"github.com/gadost/telescope/conf"
 )
 
+const (
+	at      = "🔭 Telescope \\| "
+	urgent  = at + "Urgent 🔴"
+	warning = at + "Warning ⚠️"
+	info    = at + "Info ℹ️"
+	ok      = at + "OK ✅"
+	gh      = at + "Repo Monitor 🔎"
+)
+
 // wgAlert is wait group for alerts gorutines
 var wgAlert sync.WaitGroup
 var alertSystems = &conf.MainConfig
-var at = "🔭 Telescope \\| "
 var Importance = importance{
-	Urgent:  at + "Urgent 🔴",
-	Warning: at + "Warning ⚠️",
-	Info:    at + "Info ℹ️",
-	OK:      at + "OK ✅",
-	GH:      at + "Repo Monitor 🔎",
+	Urgent:  urgent,
+	Warning: warning,
+	Info:    info,
+	OK:      ok,
+	GH:      gh,
 }
 
 // importance struct is struct for alert types

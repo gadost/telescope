@@ -95,9 +95,9 @@ func CheckNewRealeases() {
 			if ri.Domain == "github.com" {
 				lRR := new(latestReleaseResponse)
 				wgGithub.Add(1)
-				go Monitor(ri, lRR)
+				go lRR.Monitor(ri)
 			} else {
-				log.Printf("Repo %s Not Found of can't be parsed", k.Info.Github)
+				log.Printf("Repo %s Not Found or can't be parsed", k.Info.Github)
 			}
 		}
 	}
@@ -130,7 +130,7 @@ func Parse(u string) repoInfo {
 }
 
 // Monitor check github releases
-func Monitor(ri repoInfo, target *latestReleaseResponse) {
+func (target *latestReleaseResponse) Monitor(ri repoInfo) {
 	defer wgGithub.Done()
 	for {
 		eP := fmt.Sprintf("https://api.github.com/repos/" + ri.Owner + "/" + ri.RepoName + "/releases/latest")
