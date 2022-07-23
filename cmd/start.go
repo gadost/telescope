@@ -8,9 +8,8 @@ import (
 	"log"
 	"sync"
 
-	"github.com/gadost/telescope/conf"
-	"github.com/gadost/telescope/status"
-	"github.com/gadost/telescope/watcher"
+	"github.com/gadost/telescope/app"
+
 	"github.com/spf13/cobra"
 )
 
@@ -32,32 +31,32 @@ var c string
 func init() {
 	rootCmd.AddCommand(startCmd)
 
-	startCmd.PersistentFlags().StringVar(&c, "conf", conf.UserHome+"/.telescope/conf.d", "Configurations directory")
+	startCmd.PersistentFlags().StringVar(&c, "conf", app.UserHome+"/.telescope/conf.d", "Configurations directory")
 
 }
 
 func Start() {
-	cfg, chains := conf.ConfLoad(c)
-	if conf.MainConfig.Telegram.Enabled {
+	cfg, chains := app.ConfLoad(c)
+	if app.MainConfig.Telegram.Enabled {
 		log.Println("Telegram commands handler bot started.")
 		wgMain.Add(1)
-		go status.TelegramHandler()
+		go app.TelegramHandler()
 	}
-	if conf.MainConfig.Discord.Enabled {
+	if app.MainConfig.Discord.Enabled {
 		log.Println("Discord commands handler bot started.")
 		wgMain.Add(1)
-		go status.DiscordHandler()
+		go app.DiscordHandler()
 	}
-	if conf.MainConfig.Settings.GithubReleaseMonitor {
+	if app.MainConfig.Settings.GithubReleaseMonitor {
 		log.Println("Github repositories monitor started.")
 		wgMain.Add(1)
-		go watcher.CheckNewRealeases()
+		go app.CheckNewRealeases()
 	}
 
 	wgMain.Add(1)
-	go watcher.BlockProducingParticipation(cfg, chains)
+	go app.BlockProducingParticipation(cfg, chains)
 	log.Println("Alert system started for chains:", chains)
-	watcher.ThreadsSplitter(cfg, chains)
+	app.ThreadsSplitter(cfg, chains)
 
 	wgMain.Wait()
 }

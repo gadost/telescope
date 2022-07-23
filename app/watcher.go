@@ -1,4 +1,4 @@
-package watcher
+package app
 
 import (
 	"context"
@@ -6,20 +6,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gadost/telescope/conf"
-	"github.com/gadost/telescope/event"
 	tmint "github.com/tendermint/tendermint/rpc/client/http"
 	"github.com/tendermint/tendermint/rpc/coretypes"
 )
 
 var ctx = context.TODO()
-var node = &conf.Nodes{}
+var node = &Nodes{}
 var wgWatcher sync.WaitGroup
-var Node conf.Node
-var Chains = &conf.ChainsConfig{}
+var Chains = &ChainsConfig{}
 
 // Split nodes and run gorutine per node
-func ThreadsSplitter(cfg conf.ChainsConfig, chains []string) {
+func ThreadsSplitter(cfg ChainsConfig, chains []string) {
 	Chains = &cfg
 
 	for _, chainName := range chains {
@@ -85,7 +82,7 @@ func CheckPeers(res *coretypes.ResultNetInfo, chainName string, rpc string) {
 		if n.RPC == rpc {
 			status := Chains.Chain[chainName].Node[i].Status
 			if status.BootstrappedNetInfo {
-				event.PeersCount(
+				PeersCount(
 					status.PeersCount,
 					res.NPeers,
 					status.NodeInfo.Moniker,
@@ -111,7 +108,7 @@ func CheckHealth(chainName string, rpc string, counter int) int {
 				Chains.Chain[chainName].Node[i].Status.LastSeenAt = Chains.Chain[chainName].Node[i].Status.SyncInfo.LatestBlockTime
 			}
 
-			_, resolved := event.HealthCheck(
+			_, resolved := HealthCheck(
 				status.NodeInfo.Moniker,
 				status.NodeInfo.Network,
 				rpc,
@@ -139,7 +136,7 @@ func CheckStatus(res *coretypes.ResultStatus, chainName string, rpc string) {
 
 			status.NodeInfo = res.NodeInfo
 			if status.BootstrappedStatus {
-				event.VotingPower(
+				VotingPower(
 					status.ValidatorInfo.VotingPower,
 					res.ValidatorInfo.VotingPower,
 					Chains.Chain[chainName].Info.VotingPowerChanges,
@@ -150,7 +147,7 @@ func CheckStatus(res *coretypes.ResultStatus, chainName string, rpc string) {
 				Chains.Chain[chainName].Node[i].Status.BootstrappedStatus = true
 			}
 
-			event.CatchingUpState(
+			CatchingUpState(
 				Chains.Chain[chainName].Node[i].Status.SyncInfo.CatchingUp,
 				res.SyncInfo.CatchingUp,
 				status.NodeInfo.Moniker,

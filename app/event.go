@@ -1,40 +1,40 @@
-package event
+package app
 
 import (
 	"fmt"
 	"time"
-
-	"github.com/gadost/telescope/alert"
-	"github.com/gadost/telescope/conf"
 )
 
-type Context struct {
-	VotingPower bool
-	PeersCount  bool
-}
-
-type Status conf.NodeStatus
-
 type Event struct {
-	Moniker string
-	Status  Status
+	Moniker     string
+	Network     string
+	Missed      int
+	Diff        interface{}
+	MaxDiff     int64
+	RPC         string
+	LastSeenAt  time.Time
+	TimeDelta   time.Duration
+	TagName     string
+	RepoName    string
+	ReleaseDesc string
 }
 
-func New() *Event {
-	return &Event{}
-}
-
-// BlockMissedTracker check missed blocks in a row
-func BlockMissedTracker(moniker, network string, missed int) {
-	alert.NewAlertBlockMissed(moniker, network, missed).Send()
-}
-
-// Difference diff two values , comparing with minimal difference and return increase/decrease message for alert
-func Difference(one, two, min int64, ctx Context) (string, bool) {
+func VotingPowerChanges(one, two, min int64) (string, bool) {
 	switch d := one - two; {
-	case d > 0 && ((ctx.VotingPower && d > min) || (ctx.PeersCount && two < min)):
+	case d > 0 && d > min:
 		return fmt.Sprintf("DECREASED by %v \nfrom %v to %v", d, one, two), true
-	case d < 0 && ((ctx.VotingPower && d*(-1) > min) || (ctx.PeersCount && one < min && two < 10)):
+	case d < 0 && d*(-1) > min:
+		return fmt.Sprintf("INCREASED by %v \nfrom %v to %v", d*(-1), one, two), true
+	default:
+		return "", false
+	}
+}
+
+func PeersCountChanges(one, two, min int64) (string, bool) {
+	switch d := one - two; {
+	case d > 0 && two < min:
+		return fmt.Sprintf("DECREASED by %v \nfrom %v to %v", d, one, two), true
+	case d < 0 && one < min && two < 10:
 		return fmt.Sprintf("INCREASED by %v \nfrom %v to %v", d*(-1), one, two), true
 	default:
 		return "", false
@@ -43,35 +43,51 @@ func Difference(one, two, min int64, ctx Context) (string, bool) {
 
 // VotingPower comparing voting power of validator , if changed - send alert
 func VotingPower(sVP, rVP, sVPC int64, moniker, network string) {
-	diff, changed := Difference(sVP, rVP, sVPC, Context{VotingPower: true})
+	diff, changed := VotingPowerChanges(sVP, rVP, sVPC)
 	if changed {
-		alert.NewAlertVotingPower(moniker, network, diff).Send()
+		e := Event{
+			Moniker: moniker,
+			Network: network,
+			Diff:    diff,
+		}
+		e.NewAlertVotingPower().Send()
 	}
 }
 
 // PeersCount check for peers count, alert if changed
 func PeersCount(sPC, rPC int, moniker, network string) {
-	diff, changed := Difference(int64(sPC), int64(rPC), 10, Context{PeersCount: true})
+	diff, changed := PeersCountChanges(int64(sPC), int64(rPC), 10)
 	if changed {
-		alert.NewAlertPeersCount(moniker, network, diff).Send()
+		e := Event{
+			Moniker: moniker,
+			Network: network,
+			Diff:    diff,
+		}
+		e.NewAlertPeersCount().Send()
 	}
 }
 
 // CatchingUpState check cachingUp state , alert if true
 func CatchingUpState(sCU, rCU bool, moniker, network string, diff, maxDiff int64) {
+	e := Event{
+		Moniker: moniker,
+		Network: network,
+		Diff:    diff,
+		MaxDiff: maxDiff,
+	}
 	switch sCU {
 	case false:
 		switch rCU {
 		case true:
-			alert.NewAlertCatchingUp(moniker, network).Send()
+			e.NewAlertCatchingUp().Send()
 			if diff > maxDiff {
-				alert.NewAlertBlocksDelta(moniker, diff).Send()
+				e.NewAlertBlocksDelta().Send()
 			}
 		}
 	case true:
 		switch rCU {
 		case false:
-			alert.NewAlertSynced(moniker).Send()
+			e.NewAlertSynced().Send()
 		}
 	}
 }
@@ -88,14 +104,21 @@ func Unknown(s string) string {
 // HealthCheck check node health
 func HealthCheck(moniker, network, rpc string, counter int,
 	timeDelta time.Duration, lastSeenAt time.Time, lastStatus bool) (bool, bool) {
+	e := Event{
+		Moniker:    moniker,
+		Network:    network,
+		RPC:        rpc,
+		LastSeenAt: lastSeenAt,
+		TimeDelta:  timeDelta,
+	}
 	var resolved = false
 	if counter == 5 {
-		alert.NewAlertAccessDelays(Unknown(moniker), Unknown(network), rpc).Send()
+		e.NewAlertAccessDelays().Send()
 		return true, resolved
 	} else if counter > 5 {
 		return true, resolved
 	} else if counter == 0 && lastStatus {
-		alert.NewAlertAccessRestored(Unknown(moniker), Unknown(network), lastSeenAt, timeDelta).Send()
+		e.NewAlertAccessRestored().Send()
 		resolved = true
 		return false, resolved
 	} else if counter == 0 && !lastStatus {

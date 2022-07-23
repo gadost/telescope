@@ -1,11 +1,8 @@
-package alert
+package app
 
 import (
 	"fmt"
 	"sync"
-	"time"
-
-	"github.com/gadost/telescope/conf"
 )
 
 const (
@@ -19,7 +16,7 @@ const (
 
 // wgAlert is wait group for alerts gorutines
 var wgAlert sync.WaitGroup
-var alertSystems = &conf.MainConfig
+var alertSystems = &MainConfig
 var Importance = importance{
 	Urgent:  urgent,
 	Warning: warning,
@@ -62,76 +59,73 @@ func (a *Alert) Send() {
 	wgAlert.Wait()
 }
 
-func NewAlertBlockMissed(moniker string, network string, missed int) *Alert {
+func (e *Event) NewAlertBlockMissed() *Alert {
 	i := Importance.Urgent
 	m := fmt.Sprintf("Validator '%s' , \nNetwork: %s \nSignature missed  in last %v blocks in a row",
-		moniker,
-		network,
-		missed,
+		e.Moniker,
+		e.Network,
+		e.Missed,
 	)
 	return New(i, m)
 }
 
-func NewAlertVotingPower(moniker string, network string, diff string) *Alert {
+func (e *Event) NewAlertVotingPower() *Alert {
 	i := Importance.Info
-	m := fmt.Sprintf("Voting Power of '%s' , \nNetwork: %s \n%s", moniker, network, diff)
+	m := fmt.Sprintf("Voting Power of '%s' , \nNetwork: %s \n%s", e.Moniker, e.Network, e.Diff)
 	return New(i, m)
 }
 
-func NewAlertPeersCount(moniker, network, diff string) *Alert {
+func (e *Event) NewAlertPeersCount() *Alert {
 	i := Importance.Info
-	m := fmt.Sprintf("Peers count of '%s' , \nNetwork: %s \n%s", moniker, network, diff)
+	m := fmt.Sprintf("Peers count of '%s' , \nNetwork: %s \n%s", e.Moniker, e.Network, e.Diff)
 	return New(i, m)
 }
 
-func NewAlertCatchingUp(moniker, network string) *Alert {
+func (e *Event) NewAlertCatchingUp() *Alert {
 	i := Importance.Urgent
-	m := fmt.Sprintf("Node '%s'\n Net:%s\n Catching up", moniker, network)
+	m := fmt.Sprintf("Node '%s'\n Net:%s\n Catching up", e.Moniker, e.Network)
 	return New(i, m)
 }
 
-func NewAlertBlocksDelta(moniker string, diff int64) *Alert {
+func (e *Event) NewAlertBlocksDelta() *Alert {
 	i := Importance.Urgent
-	m := fmt.Sprintf("Node '%s' %v blocks behind", moniker, diff)
+	m := fmt.Sprintf("Node '%s' %v blocks behind", e.Moniker, e.Diff)
 	return New(i, m)
 }
 
-func NewAlertSynced(moniker string) *Alert {
+func (e *Event) NewAlertSynced() *Alert {
 	i := Importance.OK
-	m := fmt.Sprintf("Node '%s' Synced", moniker)
+	m := fmt.Sprintf("Node '%s' Synced", e.Moniker)
 	return New(i, m)
 }
 
-func NewAlertAccessDelays(moniker, network, rpc string) *Alert {
+func (e *Event) NewAlertAccessDelays() *Alert {
 	i := Importance.Urgent
 	m := fmt.Sprintf("Experiencing delays when trying to access '%s' node. \nNet: %s , \nNode RPC: %s",
-		moniker,
-		network,
-		rpc,
+		e.Moniker,
+		e.Network,
+		e.RPC,
 	)
 	return New(i, m)
 }
 
-func NewAlertAccessRestored(moniker,
-	network string,
-	lastSeenAt time.Time,
-	timeDelta time.Duration) *Alert {
+func (e *Event) NewAlertAccessRestored() *Alert {
 	i := Importance.OK
 	m := fmt.Sprintf(
 		"Node '%s'\nNet: %s\n is now accessible.\nNode became inaccessible at %s and was inaccessible for (at most) %s",
-		moniker,
-		network,
-		lastSeenAt,
-		timeDelta,
+		e.Moniker,
+		e.Network,
+		e.LastSeenAt,
+		e.TimeDelta,
 	)
 	return New(i, m)
 }
 
-func NewAlertGithubRelease(tagName, repoName, releaseDesc string) *Alert {
+func (e *Event) NewAlertGithubRelease() *Alert {
 	i := Importance.GH
 	m := fmt.Sprintf("Release %s of %s has just been released.\n%s",
-		tagName,
-		repoName,
-		releaseDesc)
+		e.TagName,
+		e.RepoName,
+		e.ReleaseDesc)
 	return New(i, m)
 }

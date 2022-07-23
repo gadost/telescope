@@ -1,15 +1,14 @@
-package status
+package app
 
 import (
 	"fmt"
 	"log"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/gadost/telescope/conf"
 )
 
 func DiscordHandler() {
-	dg, err := discordgo.New("Bot " + conf.MainConfig.Discord.Token)
+	dg, err := discordgo.New("Bot " + MainConfig.Discord.Token)
 	if err != nil {
 		log.Println("error creating Discord session,", err)
 		return

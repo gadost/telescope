@@ -1,13 +1,10 @@
-package watcher
+package app
 
 import (
 	"encoding/base64"
 	"log"
 	"sync"
 	"time"
-
-	"github.com/gadost/telescope/conf"
-	"github.com/gadost/telescope/event"
 )
 
 var wgNetMonitor sync.WaitGroup
@@ -33,9 +30,9 @@ func Proposal() {
 }
 
 // BlockProducingParticipation check blocks for our sign
-func BlockProducingParticipation(cfg conf.ChainsConfig, chains []string) {
+func BlockProducingParticipation(cfg ChainsConfig, chains []string) {
 	for _, chainName := range chains {
-		*node = cfg.Chain[chainName]
+		node := cfg.Chain[chainName]
 
 		for n, nodeConf := range node.Node {
 			if nodeConf.NetworkMonitoringEnabled {
@@ -105,10 +102,12 @@ func (v *ValidatorInfo) Scan(n int, chainName string) {
 						int(Chains.Chain[chainName].Info.BlocksMissedInARow) &&
 						!v.Validators[nA].Participation.Alert &&
 						Chains.Chain[chainName].Info.BlocksMissedInARow != 0 {
-						event.BlockMissedTracker(v.Validators[nA].Moniker,
-							v.Validators[nA].Network,
-							v.Validators[nA].Participation.CountMissedSignatureInARow,
-						)
+						event := Event{
+							Moniker: v.Validators[nA].Moniker,
+							Network: v.Validators[nA].Network,
+							Missed:  v.Validators[nA].Participation.CountMissedSignatureInARow,
+						}
+						event.NewAlertBlockMissed().Send()
 						v.Validators[nA].Participation.Alert = true
 					}
 				}

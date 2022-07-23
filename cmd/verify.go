@@ -7,8 +7,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/gadost/telescope/conf"
-	"github.com/gadost/telescope/watcher"
+	"github.com/gadost/telescope/app"
 	"github.com/spf13/cobra"
 )
 
@@ -24,15 +23,15 @@ var verifyCmd = &cobra.Command{
 
 func init() {
 	configCmd.AddCommand(verifyCmd)
-	verifyCmd.PersistentFlags().StringVarP(&c, "conf", "c", conf.UserHome+"/.telescope/conf.d", "Configurations directory")
+	verifyCmd.PersistentFlags().StringVarP(&c, "conf", "c", app.UserHome+"/.telescope/conf.d", "Configurations directory")
 }
 
 func Verify() {
-	cfg, chains := conf.ConfLoad(c)
+	cfg, chains := app.ConfLoad(c)
 	for _, chainName := range chains {
 		if cfg.Chain[chainName].Info.Github != "" {
 
-			repoInfo := watcher.Parse(cfg.Chain[chainName].Info.Github)
+			repoInfo := app.Parse(cfg.Chain[chainName].Info.Github)
 			if repoInfo.Domain == "" || repoInfo.Owner == "" && repoInfo.RepoName == "" {
 				fmt.Printf("Can't parse %s as github repository", cfg.Chain[chainName].Info.Github)
 			}

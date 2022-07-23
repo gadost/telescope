@@ -11,8 +11,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gadost/telescope/alert"
-	"github.com/gadost/telescope/conf"
+	"github.com/gadost/telescope/app"
 	"github.com/spf13/cobra"
 )
 
@@ -45,11 +44,11 @@ func init() {
 }
 
 func Bootstrap() {
-	if _, err := os.Stat(conf.UserHome + "/.telescope/conf.d"); !os.IsNotExist(err) {
+	if _, err := os.Stat(app.UserHome + "/.telescope/conf.d"); !os.IsNotExist(err) {
 		fmt.Println("config dir exist.")
 		os.Exit(1)
 	} else {
-		if err := os.MkdirAll(conf.UserHome+"/.telescope/conf.d", os.ModePerm); err != nil {
+		if err := os.MkdirAll(app.UserHome+"/.telescope/conf.d", os.ModePerm); err != nil {
 			log.Fatal(err)
 		}
 
@@ -104,7 +103,7 @@ func BootstrapTelegram() bool {
 		if chatID != "" {
 			chatID = strings.TrimSuffix(chatID, "\n")
 			fmt.Print("Sending ping.")
-			err := alert.TelegramSendTest(token, chatID)
+			err := app.TelegramSendTest(token, chatID)
 			if err != nil {
 				fmt.Println(err)
 			} else {
@@ -155,7 +154,7 @@ func BootstrapDiscord() bool {
 		if channelID != "" {
 			channelID = strings.TrimSuffix(channelID, "\n")
 			fmt.Print("Sending ping.")
-			err := alert.DiscordSendTest(token, channelID)
+			err := app.DiscordSendTest(token, channelID)
 			if err != nil {
 				fmt.Println(err)
 			} else {
@@ -181,7 +180,7 @@ channel_id = %s
 }
 
 func Write(cfgName string, cfg string) {
-	f, err := os.Create(conf.UserHome + "/.telescope/conf.d/" + cfgName)
+	f, err := os.Create(app.UserHome + "/.telescope/conf.d/" + cfgName)
 
 	if err != nil {
 		log.Fatal(err)

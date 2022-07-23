@@ -1,17 +1,16 @@
-package status
+package app
 
 import (
 	"log"
 	"time"
 
-	"github.com/gadost/telescope/conf"
 	tele "gopkg.in/telebot.v3"
 )
 
 // TelegramHandler start telegram command handler
 func TelegramHandler() {
 	var pref = tele.Settings{
-		Token:  conf.MainConfig.Telegram.Token,
+		Token:  MainConfig.Telegram.Token,
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
 	}
 

@@ -1,4 +1,4 @@
-package alert
+package app
 
 import (
 	"fmt"
@@ -6,14 +6,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gadost/telescope/conf"
 	tele "gopkg.in/telebot.v3"
 )
 
 // TelegramSend send message to configured telegram channel
 func (a *Alert) TelegramSend() {
 	var pref = tele.Settings{
-		Token:  conf.MainConfig.Telegram.Token,
+		Token:  MainConfig.Telegram.Token,
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
 	}
 	b, err := tele.NewBot(pref)
@@ -21,7 +20,7 @@ func (a *Alert) TelegramSend() {
 		log.Fatal(err)
 		return
 	}
-	var chatID, _ = strconv.ParseInt(conf.MainConfig.Telegram.ChatID, 10, 64)
+	var chatID, _ = strconv.ParseInt(MainConfig.Telegram.ChatID, 10, 64)
 	var to = &tele.Chat{ID: chatID}
 	_, err = b.Send(to, "* "+a.Importance+"*: \n`"+a.Message+"`", "MarkdownV2")
 	if err != nil {

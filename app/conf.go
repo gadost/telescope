@@ -1,4 +1,4 @@
-package conf
+package app
 
 import (
 	"io/fs"
@@ -24,6 +24,8 @@ var (
 	mainConfigName = "telescope.toml"
 	UserHome       = os.Getenv("HOME")
 	zNodes         = &Nodes{}
+	ConfNotFound   = "Config file not found"
+	ConfInvalid    = "Invalid config file:"
 )
 
 //Chain struct for <chain>.toml configs
@@ -152,4 +154,17 @@ func buildConf(files []fs.FileInfo) {
 // Remove extesion  for add to chains slice
 func fileNameWithoutExt(fileName string) string {
 	return fileName[:len(fileName)-len(filepath.Ext(fileName))]
+}
+
+func (cfg *ChainsConfig) GetNodesByChainName(chain string) Nodes {
+	return cfg.Chain[chain]
+}
+
+func (n *Nodes) GetNodeByAddress(addr string) *Node {
+	for i, v := range n.Node {
+		if v.Status.ValidatorInfo.Address.String() == addr {
+			return &n.Node[i]
+		}
+	}
+	return nil
 }

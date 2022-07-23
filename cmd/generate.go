@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gadost/telescope/conf"
+	"github.com/gadost/telescope/app"
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +47,7 @@ var generateCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if Print {
-			fmt.Println(conf.UserHome + "/.telescope/conf.d/" + ChainName + ".toml")
+			fmt.Println(app.UserHome + "/.telescope/conf.d/" + ChainName + ".toml")
 			fmt.Print("\n")
 			fmt.Print(skel)
 			os.Exit(0)
@@ -64,7 +64,7 @@ func init() {
 }
 
 func BootstrapChainConf() {
-	if _, err := os.Stat(conf.UserHome + "/.telescope/conf.d/" + ChainName + ".toml"); !os.IsNotExist(err) {
+	if _, err := os.Stat(app.UserHome + "/.telescope/conf.d/" + ChainName + ".toml"); !os.IsNotExist(err) {
 		fmt.Printf("config file for chain %s exits", ChainName)
 		os.Exit(1)
 	}

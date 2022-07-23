@@ -1,10 +1,8 @@
-package status
+package app
 
 import (
 	"strconv"
 	"strings"
-
-	"github.com/gadost/telescope/watcher"
 )
 
 // StatusCollection collect status from Chain struct
@@ -14,8 +12,8 @@ func StatusCollection() string {
 	var badRPC []string
 	collection = collection + "*Status:*\n\n"
 
-	for i := range watcher.Chains.Chain {
-		for _, k := range watcher.Chains.Chain[i].Node {
+	for i := range Chains.Chain {
+		for _, k := range Chains.Chain[i].Node {
 			if k.Status.SyncInfo.LatestBlockHeight > 0 {
 				collection += "*Net:* `" + k.Status.NodeInfo.Network + "`\n*Moniker:* `" + k.Status.NodeInfo.Moniker + "`\n"
 				if k.Status.SyncInfo.CatchingUp {
